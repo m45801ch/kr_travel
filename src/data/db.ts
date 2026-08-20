@@ -21,6 +21,7 @@ export class TravelDatabase extends Dexie {
   listItems!: Table<ListItem, string>
   weatherCache!: Table<WeatherCache, string>
   settings!: Table<Settings, string>
+  photos!: Table<{ id: string; blob: Blob }, string>
 
   constructor(name = 'korea-travel') {
     super(name)
@@ -35,6 +36,7 @@ export class TravelDatabase extends Dexie {
       weatherCache: 'id, tripId, date, locationKey',
       settings: 'id',
     })
+    this.version(2).stores({ photos: 'id' })
   }
 }
 
