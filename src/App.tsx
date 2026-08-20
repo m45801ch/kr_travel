@@ -1,30 +1,21 @@
-import './App.css'
-
-const navigation = [
-  { label: '行程', icon: '⌂' },
-  { label: '記帳', icon: '₩' },
-  { label: '購物', icon: '□' },
-  { label: '準備', icon: '✓' },
-  { label: '設置', icon: '⚙' },
-]
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AppShell } from './app/AppShell'
+import { PagePreview } from './app/routes'
 
 function App() {
   return (
-    <main className="app-shell">
-      <section className="app-placeholder" aria-label="旅遊 App">
-        <p className="eyebrow">KOREA TRAVEL</p>
-        <h1>準備好出發了嗎？</h1>
-        <p>你的旅程、預算與行李清單都會在這裡。</p>
-      </section>
-      <nav className="bottom-nav" aria-label="主要功能">
-        {navigation.map((item, index) => (
-          <button className={index === 0 ? 'nav-item is-active' : 'nav-item'} key={item.label} type="button">
-            <span className="nav-icon" aria-hidden="true">{item.icon}</span>
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<Navigate to="/itinerary" replace />} />
+          <Route path="/itinerary" element={<PagePreview title="今日行程" subtitle="規劃你的韓國旅程" />} />
+          <Route path="/expenses" element={<PagePreview title="旅行記帳" subtitle="掌握每一筆旅費" />} />
+          <Route path="/shopping" element={<PagePreview title="購物清單" subtitle="記錄想帶回家的東西" />} />
+          <Route path="/prep" element={<PagePreview title="行前準備" subtitle="出發前一步一步完成" />} />
+          <Route path="/settings" element={<PagePreview title="設置" subtitle="個人化你的旅遊規劃體驗" />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
