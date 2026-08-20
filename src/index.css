@@ -1,7 +1,7 @@
 :root {
   font-family: 'Noto Sans TC', 'PingFang TC', system-ui, sans-serif;
-  color: #4f443f;
-  background: #fffaf0;
+  color: var(--color-text, #4f443f);
+  background: var(--color-bg, #fffaf0);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

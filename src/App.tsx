@@ -1,9 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './app/AppShell'
-import { PagePreview } from './app/routes'
 import { ItineraryPage } from './features/itinerary/ItineraryPage'
 import { ExpensePage } from './features/expenses/ExpensePage'
 import { ListPage } from './features/lists/ListPage'
+import { SettingsPage } from './features/settings/SettingsPage'
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
           <Route path="/expenses" element={<ExpensePage />} />
           <Route path="/shopping" element={<ListPage type="shopping" />} />
           <Route path="/prep" element={<ListPage type="prep" />} />
-          <Route path="/settings" element={<PagePreview title="設置" subtitle="個人化你的旅遊規劃體驗" />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
