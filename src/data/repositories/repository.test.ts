@@ -4,7 +4,7 @@ import { TravelDatabase } from '../db'
 import { ExpenseRepository } from './expenseRepository'
 import { ListRepository } from './listRepository'
 import { TripRepository } from './tripRepository'
-import type { Expense, ListItem, Trip } from '../../domain/types'
+import type { Expense, ListItem, Trip, TripDay } from '../../domain/types'
 
 const testDb = new TravelDatabase(`test-${Date.now()}`)
 const tripRepository = new TripRepository(testDb)
@@ -23,6 +23,16 @@ describe('repositories', () => {
     }
     await tripRepository.saveTrip(trip)
     expect(await tripRepository.getActiveTrip()).toEqual(trip)
+  })
+
+  it('removes an itinerary day so stale date cards cannot be listed', async () => {
+    const days: TripDay[] = [
+      { id: 'trip-1-day-1', tripId: 'trip-1', date: '2026-10-01', city: '首爾', title: 'Day 1', summary: '', accommodation: '', illustrationId: 'hanbok-woman' },
+      { id: 'trip-1-day-2', tripId: 'trip-1', date: '2026-10-02', city: '首爾', title: 'Day 2', summary: '', accommodation: '', illustrationId: 'korean-house' },
+    ]
+    await Promise.all(days.map((day) => tripRepository.saveDay(day)))
+    await tripRepository.deleteDay(days[1].id)
+    expect(await tripRepository.listDays('trip-1')).toEqual([days[0]])
   })
 
   it('scopes expenses by trip id', async () => {

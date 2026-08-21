@@ -25,6 +25,10 @@ export class TripRepository {
     await this.database.days.put(day)
   }
 
+  async deleteDay(id: string): Promise<void> {
+    await this.database.days.delete(id)
+  }
+
   async listActivities(dayId: string): Promise<Activity[]> {
     const activities = await this.database.activities.where('dayId').equals(dayId).toArray()
     return activities.sort((a, b) => a.order - b.order || a.time.localeCompare(b.time))
@@ -36,5 +40,9 @@ export class TripRepository {
 
   async deleteActivity(id: string): Promise<void> {
     await this.database.activities.delete(id)
+  }
+
+  async deleteActivitiesByDay(dayId: string): Promise<void> {
+    await this.database.activities.where('dayId').equals(dayId).delete()
   }
 }

@@ -22,6 +22,9 @@ export interface TripDay {
   tripId: string
   date: string
   city: string
+  weatherLocation?: string
+  weatherCountryCode?: string
+  weatherCityQuery?: string
   title: string
   summary: string
   accommodation: string

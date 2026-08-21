@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '../App'
+import { APP_VERSION } from './version'
 
 describe('travel app integration', () => {
   it('navigates across the five primary tabs', async () => {
@@ -16,5 +17,6 @@ describe('travel app integration', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: '行前準備' })).toBeInTheDocument())
     await user.click(screen.getByRole('link', { name: '設置' }))
     await waitFor(() => expect(screen.getByRole('heading', { name: '設置' })).toBeInTheDocument())
+    expect(screen.getByText(APP_VERSION)).toBeInTheDocument()
   })
 })

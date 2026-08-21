@@ -8,8 +8,9 @@ export function DateStrip({ days, selectedDate, onSelect }: { days: TripDay[]; s
       {days.map((day) => {
         const date = new Date(`${day.date}T00:00:00`)
         const active = selectedDate === day.date
+        const location = day.weatherLocation?.trim() || day.city
         return <button className={active ? 'date-tile is-active' : 'date-tile'} key={day.id} type="button" onClick={() => onSelect(day.date)}>
-          <span>{weekdays[date.getDay()]}</span><strong>{date.getDate()}</strong><small>{day.city}</small>
+          <span>{weekdays[date.getDay()]}</span><strong>{date.getDate()}</strong><small title={location}>{location}</small>
         </button>
       })}
     </div>
