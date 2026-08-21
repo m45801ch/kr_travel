@@ -37,4 +37,8 @@ export class TripRepository {
   async deleteActivity(id: string): Promise<void> {
     await this.database.activities.delete(id)
   }
+
+  async deleteActivitiesByDay(dayId: string): Promise<void> {
+    await this.database.activities.where('dayId').equals(dayId).delete()
+  }
 }

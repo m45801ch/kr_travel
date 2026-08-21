@@ -1,4 +1,5 @@
 import type { WeatherSnapshot } from '../../domain/types'
+import { KOREAN_PLACE_ALIASES } from './koreanPlaces'
 
 interface GeocodingResult { latitude: number; longitude: number; name: string }
 
@@ -10,14 +11,46 @@ const descriptions: Record<number, string> = {
 
 export function weatherDescription(code: number): string { return descriptions[code] ?? '天氣變化中' }
 
+function toAliases(destination: string): string[] {
+  const trimmed = destination.trim()
+  const aliases = new Set<string>()
+  const directAlias = KOREAN_PLACE_ALIASES[trimmed]
+  if (directAlias) aliases.add(directAlias)
+  // 原始輸入(可能已經是英文,如 Seoul)也可用來搜尋
+  if (trimmed) aliases.add(trimmed)
+  return Array.from(aliases)
+}
+
 export async function geocodeDestination(destination: string): Promise<GeocodingResult> {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(destination)}&count=1&language=zh&format=json`
-  const response = await fetch(url)
-  if (!response.ok) throw new Error('無法取得目的地位置')
-  const data = await response.json() as { results?: GeocodingResult[] }
-  const result = data.results?.[0]
-  if (!result) throw new Error('找不到目的地')
-  return result
+  const candidates = toAliases(destination)
+  const failures: string[] = []
+  // 優先以韓國(country_code=KR)限域搜尋,避免同名外國城市(例如衣索比亞也有 Jeju)
+  for (const candidate of candidates) {
+    try {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(candidate)}&count=1&country_code=KR&format=json`
+      const response = await fetch(url)
+      if (!response.ok) { failures.push(`${candidate}(${candidate === destination ? 'original' : 'alias'}) HTTP ${response.status}`); continue }
+      const data = await response.json() as { results?: GeocodingResult[] }
+      const result = data.results?.[0]
+      if (result) return result
+    } catch {
+      failures.push(`${candidate}(network)`)
+    }
+  }
+  // 若韓國限域搜尋全部失敗,最後嘗試不限國家(原輸入與對照表)
+  for (const candidate of candidates) {
+    try {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(candidate)}&count=1&format=json`
+      const response = await fetch(url)
+      if (!response.ok) continue
+      const data = await response.json() as { results?: GeocodingResult[] }
+      const result = data.results?.[0]
+      if (result) return result
+    } catch {
+      failures.push(`${candidate}(network)`)
+    }
+  }
+  throw new Error(`找不到目的地「${destination}」的位置(嘗試過:${failures.join('、') || '原始名稱與對照表名稱'})`)
 }
 
 export async function getForecast(latitude: number, longitude: number, date: string, locationName: string): Promise<WeatherSnapshot> {

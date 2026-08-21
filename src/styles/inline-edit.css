@@ -1,0 +1,19 @@
+/* 可編輯標題 / 日期 / 本日標題的共用樣式 */
+.trip-heading { display: grid; gap: 4px; min-width: 0; }
+.page-header h1.editable { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.page-header h1.editable svg { opacity: .5; }
+.page-header h1.editable:hover svg { opacity: 1; }
+.editable-date { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.editable-date:hover { color: var(--color-text); }
+.editable-date svg { opacity: .55; }
+.inline-edit { display: inline-flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.inline-edit-input { border: 2px solid var(--color-accent); border-radius: 14px; padding: 9px 12px; color: var(--color-text); background: var(--color-surface); font: inherit; font-size: inherit; }
+.inline-edit-input[type='date'] { padding: 7px 10px; min-width: 138px; }
+.inline-edit-ok { padding: 9px 14px; border: 0; border-radius: 12px; color: white; background: var(--color-accent); font-weight: 800; }
+.inline-edit-cancel { padding: 9px 14px; border: 1px solid var(--color-border); border-radius: 12px; color: var(--color-muted); background: var(--color-surface); font-weight: 700; }
+.date-inline-edit { color: var(--color-muted); }
+.date-inline-edit .date-separator { color: var(--color-muted); }
+.day-card-heading .editable { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.day-card-heading .editable svg { opacity: .45; margin-top: 7px; }
+.day-title-edit { display: flex; align-items: center; gap: 8px; }
+.day-title-edit .inline-edit-input { flex: 1; min-width: 140px; font-weight: 800; }
