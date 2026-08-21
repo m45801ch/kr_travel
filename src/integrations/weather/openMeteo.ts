@@ -54,6 +54,11 @@ export async function geocodeDestination(destination: string): Promise<Geocoding
 }
 
 export async function getForecast(latitude: number, longitude: number, date: string, locationName: string): Promise<WeatherSnapshot> {
+  const requestedDate = new Date(`${date}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const daysAhead = Math.floor((requestedDate.getTime() - today.getTime()) / 86_400_000)
+  if (!Number.isFinite(requestedDate.getTime()) || daysAhead > 16) throw new Error('此日期超出目前可預報範圍')
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&start_date=${date}&end_date=${date}`
   const response = await fetch(url)
   if (!response.ok) throw new Error('無法取得天氣資料')
