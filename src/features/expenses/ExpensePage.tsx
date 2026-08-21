@@ -1,7 +1,7 @@
-import { Plus, Settings2 } from 'lucide-react'
+import { Pencil, Plus, Settings2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { Expense, ExpenseSplit, Member } from '../../domain/types'
-import { fromMinorUnits } from '../../domain/money'
+import { fromMinorUnits, toMinorUnits } from '../../domain/money'
 import { calculateSettlement } from '../../domain/splitting'
 import { ExpenseRepository } from '../../data/repositories/expenseRepository'
 import { MemberRepository } from '../../data/repositories/memberRepository'
@@ -21,6 +21,8 @@ export function ExpensePage() {
   const [members, setMembers] = useState<Member[]>([])
   const [showForm, setShowForm] = useState(false)
   const [category, setCategory] = useState('全部')
+  const [editingBudget, setEditingBudget] = useState(false)
+  const [budgetDraft, setBudgetDraft] = useState('')
 
   const reload = async () => {
     const currentTrip = await tripRepository.getActiveTrip()
@@ -41,6 +43,24 @@ export function ExpensePage() {
   const visibleExpenses = useMemo(() => category === '全部' ? expenses : expenses.filter((expense) => expense.category === category), [category, expenses])
   const settlements = calculateSettlement(expenses, members, splits)
 
+  const startEditBudget = () => {
+    if (!trip) return
+    setBudgetDraft(String(fromMinorUnits(trip.budgetMinor, trip.baseCurrency)))
+    setEditingBudget(true)
+  }
+  const saveBudget = async () => {
+    if (!trip) return
+    try {
+      const nextBudget = toMinorUnits(budgetDraft, trip.baseCurrency)
+      const nextTrip = { ...trip, budgetMinor: nextBudget }
+      await tripRepository.saveTrip(nextTrip)
+      setTrip(nextTrip)
+      setEditingBudget(false)
+    } catch {
+      // ignore invalid input
+    }
+  }
+
   if (!trip) return <section className="page-preview"><p>請先建立旅程。</p></section>
-  return <section className="expenses-page"><header className="page-header"><div><p className="eyebrow">TRAVEL BUDGET</p><h1>旅行記帳</h1><p>追蹤支出與旅程預算</p></div><button className="header-icon-button" type="button" aria-label="匯率設定"><Settings2 size={20} /></button></header><BudgetCard budget={trip.budgetMinor} spent={spent} format={format} /><div className="expense-toolbar"><select value={category} onChange={(event) => setCategory(event.target.value)}><option>全部</option><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option></select><button className="button-primary compact" type="button" onClick={() => setShowForm(true)}><Plus size={18} />新增支出</button></div><div className="expense-list">{visibleExpenses.length ? visibleExpenses.map((expense) => <article className="expense-row" key={expense.id}><div className="expense-category">{expense.category.slice(0, 1)}</div><div><strong>{expense.category}</strong><span>{expense.notes || `${expense.currency} 支出`}</span></div><b>{format(expense.baseAmountMinor)}</b></article>) : <div className="empty-activities">還沒有支出紀錄，先記下一筆旅費吧。</div>}</div><SettlementSummary settlements={settlements} members={members} format={format} />{showForm && <ExpenseForm tripId={trip.id} baseCurrency={trip.baseCurrency} members={members} onSave={async (expense, expenseSplits) => { await expenseRepository.save(expense, expenseSplits); setShowForm(false); await reload() }} onCancel={() => setShowForm(false)} />}</section>
+  return <section className="expenses-page"><header className="page-header"><div><p className="eyebrow">TRAVEL BUDGET</p><h1>旅行記帳</h1><p>追蹤支出與旅程預算</p></div><button className="header-icon-button" type="button" aria-label="匯率設定"><Settings2 size={20} /></button></header><BudgetCard budget={trip.budgetMinor} spent={spent} format={format} />{editingBudget ? <div className="budget-edit"><label>總預算<input value={budgetDraft} onChange={(e) => setBudgetDraft(e.target.value)} inputMode="decimal" placeholder="輸入金額" aria-label="總預算" /></label><div className="budget-edit-actions"><button className="button-primary" type="button" onClick={() => void saveBudget()}>儲存</button><button className="button-secondary" type="button" onClick={() => setEditingBudget(false)}>取消</button></div></div> : <button className="budget-edit-trigger" type="button" onClick={startEditBudget}><Pencil size={14} /> 設定總預算（目前 {format(trip.budgetMinor)}）</button>}<div className="expense-toolbar"><select value={category} onChange={(event) => setCategory(event.target.value)}><option>全部</option><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option></select><button className="button-primary compact" type="button" onClick={() => setShowForm(true)}><Plus size={18} />新增支出</button></div><div className="expense-list">{visibleExpenses.length ? visibleExpenses.map((expense) => <article className="expense-row" key={expense.id}><div className="expense-category">{expense.category.slice(0, 1)}</div><div><strong>{expense.category}</strong><span>{expense.notes || `${expense.currency} 支出`}</span></div><b>{format(expense.baseAmountMinor)}</b></article>) : <div className="empty-activities">還沒有支出紀錄，先記下一筆旅費吧。</div>}</div><SettlementSummary settlements={settlements} members={members} format={format} />{showForm && <ExpenseForm tripId={trip.id} baseCurrency={trip.baseCurrency} members={members} onSave={async (expense, expenseSplits) => { await expenseRepository.save(expense, expenseSplits); setShowForm(false); await reload() }} onCancel={() => setShowForm(false)} />}</section>
 }

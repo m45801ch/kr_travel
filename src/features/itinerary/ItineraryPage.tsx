@@ -51,11 +51,11 @@ export function ItineraryPage() {
   const visibleSelectedDate = useMemo(() => visibleDays.some((day) => day.date === selectedDate) ? selectedDate : (visibleDays[0]?.date ?? selectedDate), [selectedDate, visibleDays])
   const selectedDay = useMemo(() => visibleDays.find((day) => day.date === visibleSelectedDate), [visibleDays, visibleSelectedDate])
 
-  const loadWeather = useCallback(async (currentTrip: Trip, date: string, destination: string) => {
+  const loadWeather = useCallback(async (currentTrip: Trip, date: string, destination: string, coords?: { latitude: number; longitude: number }) => {
     setWeatherLoading(true)
     setWeatherError('')
     try {
-      setWeather(await getCachedOrFetchWeather(currentTrip.id, date, destination))
+      setWeather(await getCachedOrFetchWeather(currentTrip.id, date, destination, coords))
     } catch (error) {
       setWeather(undefined)
       setWeatherError(error instanceof Error ? error.message : '天氣資料載入失敗，請稍後再試。')
@@ -78,15 +78,16 @@ export function ItineraryPage() {
 
   const selectedWeatherLocation = selectedDay?.weatherLocation?.trim() || selectedDay?.city?.trim() || trip?.destination || ''
   const selectedWeatherQuery = selectedDay?.weatherCityQuery?.trim() || selectedWeatherLocation
+  const selectedWeatherCoords = useMemo(() => (selectedDay?.weatherLatitude != null && selectedDay?.weatherLongitude != null ? { latitude: selectedDay.weatherLatitude, longitude: selectedDay.weatherLongitude } : undefined), [selectedDay?.weatherLatitude, selectedDay?.weatherLongitude])
 
-  useEffect(() => { if (selectedDay && trip) { void loadActivities(selectedDay.id); void loadWeather(trip, selectedDay.date, selectedWeatherQuery) } }, [loadActivities, loadWeather, selectedDay, selectedWeatherQuery, trip])
+  useEffect(() => { if (selectedDay && trip) { void loadActivities(selectedDay.id); void loadWeather(trip, selectedDay.date, selectedWeatherQuery, selectedWeatherCoords) } }, [loadActivities, loadWeather, selectedDay, selectedWeatherQuery, selectedWeatherCoords, trip])
 
-  const saveWeatherLocation = async (selection: { location: string; countryCode: string; cityQuery: string }) => {
+  const saveWeatherLocation = async (selection: { location: string; countryCode: string; cityQuery: string; latitude?: number; longitude?: number }) => {
     if (!selectedDay || !trip) return
-    const nextDay = { ...selectedDay, weatherLocation: selection.location, weatherCountryCode: selection.countryCode, weatherCityQuery: selection.cityQuery }
+    const nextDay = { ...selectedDay, weatherLocation: selection.location, weatherCountryCode: selection.countryCode, weatherCityQuery: selection.cityQuery, weatherLatitude: selection.latitude, weatherLongitude: selection.longitude }
     await repository.saveDay(nextDay)
     setDays((current) => current.map((day) => (day.id === nextDay.id ? nextDay : day)))
-    await loadWeather(trip, nextDay.date, selection.cityQuery)
+    await loadWeather(trip, nextDay.date, selection.cityQuery, selection.latitude != null && selection.longitude != null ? { latitude: selection.latitude, longitude: selection.longitude } : undefined)
   }
 
   const saveActivity = async (activity: Activity) => { await repository.saveActivity(activity); setShowForm(false); setEditingActivity(undefined); await loadActivities(activity.dayId) }
@@ -146,7 +147,7 @@ export function ItineraryPage() {
   return <section className="itinerary-page">
     <header className="page-header">
       <div className="trip-heading">
-        <p className="eyebrow">{trip.destination.toUpperCase()} TRIP</p>
+        <p className="eyebrow">TRIP</p>
         {editingTitle
           ? <div className="inline-edit"><input className="inline-edit-input" value={titleDraft} onChange={(event) => setTitleDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void saveTitle(); if (event.key === 'Escape') setEditingTitle(false) }} autoFocus onBlur={() => void saveTitle()} aria-label="行程標題" /><button type="button" className="inline-edit-ok" onClick={() => void saveTitle()}>完成</button></div>
           : <h1 className="editable" role="button" tabIndex={0} onClick={startEditTitle} onKeyDown={(event) => { if (event.key === 'Enter') startEditTitle() }} aria-label="點擊編輯行程標題">{trip.title} <Pencil size={16} aria-hidden="true" /></h1>}
@@ -163,7 +164,7 @@ export function ItineraryPage() {
       <button className="header-icon-button" type="button" aria-label="旅程裝扮"><Sparkles size={21} /></button>
     </header>
     <DateStrip days={visibleDays} selectedDate={visibleSelectedDate} onSelect={setSelectedDate} />
-    <WeatherCard key={selectedDay.id} weather={weather} error={weatherError} loading={weatherLoading} location={selectedWeatherLocation} countryCode={selectedDay.weatherCountryCode} cityQuery={selectedDay.weatherCityQuery} onSaveLocation={(selection) => void saveWeatherLocation(selection)} onRefresh={() => void loadWeather(trip, selectedDay.date, selectedWeatherQuery)} />
+    <WeatherCard key={selectedDay.id} weather={weather} error={weatherError} loading={weatherLoading} location={selectedWeatherLocation} countryCode={selectedDay.weatherCountryCode} cityQuery={selectedDay.weatherCityQuery} latitude={selectedDay.weatherLatitude} longitude={selectedDay.weatherLongitude} onSaveLocation={(selection) => void saveWeatherLocation(selection)} onRefresh={() => void loadWeather(trip, selectedDay.date, selectedWeatherQuery, selectedWeatherCoords)} />
     <section className="day-card">
       <div className="day-card-heading">
         {editingDay && editingDay.id === selectedDay.id

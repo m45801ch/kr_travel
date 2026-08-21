@@ -25,6 +25,8 @@ export interface TripDay {
   weatherLocation?: string
   weatherCountryCode?: string
   weatherCityQuery?: string
+  weatherLatitude?: number
+  weatherLongitude?: number
   title: string
   summary: string
   accommodation: string
