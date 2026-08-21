@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import type { Activity, ActivityType } from '../../domain/types'
 import { buildGoogleMapsSearchUrl } from '../../integrations/maps/googleMapsUrl'
 import { IllustrationPicker } from '../../components/IllustrationPicker'
 
-export function ActivityForm({ tripId, dayId, date, initial, onSave, onCancel }: { tripId: string; dayId: string; date: string; initial?: Activity; onSave: (activity: Activity) => void; onCancel: () => void }) {
+export function ActivityForm({ tripId, dayId, date, initial, onSave, onDelete, onCancel }: { tripId: string; dayId: string; date: string; initial?: Activity; onSave: (activity: Activity) => void; onDelete?: (id: string) => void; onCancel: () => void }) {
   const [title, setTitle] = useState(initial?.title ?? '')
   const [time, setTime] = useState(initial?.time ?? '10:00')
   const [type, setType] = useState<ActivityType>(initial?.type ?? 'spot')
@@ -33,5 +34,6 @@ export function ActivityForm({ tripId, dayId, date, initial, onSave, onCancel }:
     <label>備註<textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="營業時間、預約資訊或提醒" rows={3} /></label>
     <label>選擇圖案<IllustrationPicker value={illustrationId} onChange={setIllustrationId} /></label>
     <div className="form-actions"><button type="button" className="button-secondary" onClick={onCancel}>取消</button><button type="submit" className="button-primary">{isEditing ? '儲存修改' : '儲存行程'}</button></div>
+    {isEditing && initial && onDelete && <button type="button" className="button-danger delete-activity-button" onClick={() => { if (window.confirm(`確定要移除「${initial.title}」嗎？`)) onDelete(initial.id) }}><Trash2 size={18} />移除這個行程</button>}
   </form></div>
 }

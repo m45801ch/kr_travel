@@ -23,4 +23,11 @@ export class ExpenseRepository {
   async listSplits(expenseId: string): Promise<ExpenseSplit[]> {
     return this.database.expenseSplits.where('expenseId').equals(expenseId).toArray()
   }
+
+  async delete(expenseId: string): Promise<void> {
+    await this.database.transaction('rw', this.database.expenses, this.database.expenseSplits, async () => {
+      await this.database.expenseSplits.where('expenseId').equals(expenseId).delete()
+      await this.database.expenses.delete(expenseId)
+    })
+  }
 }
