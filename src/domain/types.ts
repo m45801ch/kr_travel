@@ -1,4 +1,4 @@
-export type Currency = 'TWD' | 'KRW' | 'JPY' | 'USD' | 'HKD'
+export type Currency = string
 export type ListType = 'shopping' | 'prep'
 export type SplitMode = 'equal' | 'custom'
 export type ActivityType = 'spot' | 'food' | 'transit' | 'stay' | 'other'
@@ -67,6 +67,9 @@ export interface Expense {
   currency: Currency
   exchangeRateToBase: number
   baseAmountMinor: number
+  conversionCurrency?: Currency
+  conversionRate?: number
+  convertedAmountMinor?: number
   category: string
   payerId: string
   splitMode: SplitMode

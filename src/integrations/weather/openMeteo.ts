@@ -54,7 +54,6 @@ function metNoSymbolToCode(symbol: string): number {
 }
 
 async function fetchForecastFallback(latitude: number, longitude: number, date: string, locationName: string): Promise<WeatherSnapshot | null> {
-  // 1st fallback: wttr.in
   try {
     const wttrRes = await fetch(`https://wttr.in/${latitude},${longitude}?format=j1`)
     if (wttrRes.ok) {
@@ -67,7 +66,6 @@ async function fetchForecastFallback(latitude: number, longitude: number, date: 
       }
     }
   } catch {}
-  // 2nd fallback: 7Timer
   try {
     const url = `https://www.7timer.info/bin/api.pl?lon=${longitude}&lat=${latitude}&product=civillight&output=json`
     const res = await fetch(url)
@@ -81,7 +79,6 @@ async function fetchForecastFallback(latitude: number, longitude: number, date: 
       }
     }
   } catch {}
-  // 3rd fallback: met.no
   try {
     const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${latitude}&lon=${longitude}`
     const res = await fetch(url, { headers: { Accept: 'application/json' } as HeadersInit })
@@ -124,7 +121,18 @@ function toAliases(destination: string): string[] {
 export async function geocodeDestination(destination: string): Promise<GeocodingResult> {
   const candidates = toAliases(destination)
   const failures: string[] = []
-  // 不限制國家，讓城市、景點與地區可以來自世界各地。
+  for (const candidate of candidates) {
+    try {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(candidate)}&count=1&country_code=KR&format=json`
+      const response = await fetch(url)
+      if (!response.ok) { failures.push(`${candidate}(${candidate === destination ? 'original' : 'alias'}) HTTP ${response.status}`); continue }
+      const data = await response.json() as { results?: GeocodingResult[] }
+      const result = data.results?.[0]
+      if (result) return result
+    } catch {
+      failures.push(`${candidate}(network)`)
+    }
+  }
   for (const candidate of candidates) {
     try {
       const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(candidate)}&count=1&format=json`
@@ -137,7 +145,6 @@ export async function geocodeDestination(destination: string): Promise<Geocoding
       failures.push(`${candidate}(network)`)
     }
   }
-  // Open-Meteo 中文對部分城市無索引，改用 Nominatim 後備
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination.trim())}&format=json&addressdetails=1&accept-language=zh&limit=1`
     const response = await fetch(url, { headers: { 'Accept-Language': 'zh-TW,zh;q=0.9' } as HeadersInit })
@@ -154,10 +161,10 @@ export async function geocodeDestination(destination: string): Promise<Geocoding
 
 export async function getForecast(latitude: number, longitude: number, date: string, locationName: string): Promise<WeatherSnapshot> {
   const requestedDate = new Date(`${date}T00:00:00`)
-  const latestForecastDate = new Date()
-  latestForecastDate.setHours(0, 0, 0, 0)
-  latestForecastDate.setDate(latestForecastDate.getDate() + 16)
-  if (requestedDate > latestForecastDate) throw new Error('此日期超出目前可預報範圍，請在接近出發日期後再更新。')
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const daysAhead = Math.floor((requestedDate.getTime() - today.getTime()) / 86_400_000)
+  if (!Number.isFinite(requestedDate.getTime()) || daysAhead > 16) throw new Error('此日期超出目前可預報範圍，請在接近出發日期後再更新。')
 
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&start_date=${date}&end_date=${date}`
   let response: Response | null = null
@@ -168,9 +175,7 @@ export async function getForecast(latitude: number, longitude: number, date: str
       try {
         const errorData = (await response.json()) as { reason?: string }
         reason = errorData.reason ?? ''
-      } catch {
-        // Ignore non-JSON error responses
-      }
+      } catch {}
       if (/allowed range|start_date|end_date/i.test(reason)) throw new Error('此日期超出目前可預報範圍，請在接近出發日期後再更新。')
       throw new Error(reason ? `無法取得天氣資料：${reason}` : `HTTP ${response.status}`)
     }

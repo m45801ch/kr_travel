@@ -2,7 +2,7 @@
  * 常用韓國旅遊地名對照表
  * Open-Meteo 的 geocoding API 無法直接查到中文地名(例如「首爾」),
  * 因此提供一個在地對照表,把常見的中文譯名對應到英文地名,
- * 目前搜尋不限定國家，讓別名與使用者輸入都能支援全球地點。
+ * 並限定 country_code=KR 讓搜尋結果優先落在韓國境內。
  */
 export const KOREAN_PLACE_ALIASES: Record<string, string> = {
   首爾: 'Seoul',

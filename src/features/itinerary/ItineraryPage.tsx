@@ -91,7 +91,7 @@ export function ItineraryPage() {
   }
 
   const saveActivity = async (activity: Activity) => { await repository.saveActivity(activity); setShowForm(false); setEditingActivity(undefined); await loadActivities(activity.dayId) }
-  const deleteActivity = async (id: string) => { await repository.deleteActivity(id); if (selectedDay) await loadActivities(selectedDay.id) }
+  const deleteActivity = async (id: string) => { await repository.deleteActivity(id); setShowForm(false); setEditingActivity(undefined); if (selectedDay) await loadActivities(selectedDay.id) }
 
   const startEditTitle = () => { if (trip) { setTitleDraft(trip.title); setEditingTitle(true) } }
   const saveTitle = async () => {
@@ -145,7 +145,7 @@ export function ItineraryPage() {
 
   if (loading || !trip || !selectedDay) return <section className="page-preview"><p>載入你的旅程中…</p></section>
   return <section className="itinerary-page">
-    <header className="page-header">
+    <header className="page-header themed-header themed-header-itinerary">
       <div className="trip-heading">
         <p className="eyebrow">TRIP</p>
         {editingTitle
@@ -174,7 +174,7 @@ export function ItineraryPage() {
             </div>}
         <span className="day-illustration" aria-hidden="true">{selectedDay.illustrationId === 'korean-house' ? '🏠' : '👘'}</span>
       </div>
-      <div className="activity-list">{activities.length ? activities.map((activity) => <ActivityCard key={activity.id} activity={activity} onDelete={deleteActivity} onEdit={(id) => void (async () => { const found = activities.find((a) => a.id === id); if (found) { setEditingActivity(found); setShowForm(true) } })()} />) : <div className="empty-activities">今天還沒有安排,從一個喜歡的地方開始吧。</div>}</div>
+      <div className="activity-list">{activities.length ? activities.map((activity) => <ActivityCard key={activity.id} activity={activity} onEdit={(id) => void (async () => { const found = activities.find((a) => a.id === id); if (found) { setEditingActivity(found); setShowForm(true) } })()} />) : <div className="empty-activities">今天還沒有安排,從一個喜歡的地方開始吧。</div>}</div>
       <button className="add-activity-button" type="button" onClick={() => { setEditingActivity(undefined); setShowForm(true) }}><Plus size={18} />新增活動</button>
     </section>
     {showForm && (
@@ -184,6 +184,7 @@ export function ItineraryPage() {
         date={selectedDay.date}
         initial={editingActivity}
         onSave={saveActivity}
+        onDelete={(id) => { void deleteActivity(id) }}
         onCancel={() => { setShowForm(false); setEditingActivity(undefined) }}
       />
     )}
