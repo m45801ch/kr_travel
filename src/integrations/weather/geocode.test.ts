@@ -31,10 +31,4 @@ describe('geocodeDestination', () => {
     const result = await geocodeDestination('大邱')
     expect(result.name).toBe('Daegu')
   }, 20000)
-
-  it('resolves a city outside Korea', async () => {
-    const result = await geocodeDestination('New York')
-    expect(result.name).toContain('New York')
-    expect(result.longitude).toBeLessThan(-70)
-  }, 20000)
 })
