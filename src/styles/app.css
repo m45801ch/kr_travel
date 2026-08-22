@@ -526,6 +526,33 @@ a.companion-contact:hover, a.companion-contact:focus-visible { background: var(-
 @media (min-width: 600px) { .theme-choice-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .theme-choice { grid-template-columns: 66px minmax(0, 1fr) auto; gap: 9px; } .theme-choice-preview { width: 66px; height: 62px; } }
 
+@media (max-width: 600px) {
+  .weather-hero { display: grid; grid-template-columns: 58px minmax(0, 1fr); grid-template-areas: 'icon main' 'place place'; align-items: center; gap: 12px; padding: 16px 14px 14px; }
+  .weather-hero-icon { grid-area: icon; width: 58px; height: 58px; border-radius: 17px; }
+  .weather-hero-icon svg { width: 42px; height: 42px; }
+  .weather-hero-main { grid-area: main; width: 100%; }
+  .weather-temp { min-width: 0; gap: 5px; }
+  .weather-temp strong { font-size: clamp(2.1rem, 10vw, 2.65rem); }
+  .weather-temp span { font-size: 1rem; }
+  .weather-refresh { flex: 0 0 30px; width: 30px; height: 30px; margin-left: 3px; }
+  .weather-narrative { max-width: 100%; font-size: .78rem; line-height: 1.35; overflow-wrap: anywhere; }
+  .weather-hero-place { grid-area: place; display: flex; align-items: baseline; justify-content: flex-start; flex-wrap: wrap; gap: 4px 9px; max-width: none; min-width: 0; padding-top: 9px; border-top: 1px solid color-mix(in srgb, var(--hero-text) 18%, transparent); text-align: left; }
+  .weather-location-large { max-width: 100%; font-size: 1.25rem; }
+  .weather-local-time { font-size: .72rem; }
+  .weather-updated { flex-basis: 100%; font-size: .68rem; white-space: normal; }
+  .weather-bg-icon { right: -18px; opacity: .07; transform: translateY(-48%) scale(.78); }
+  .weather-stars { top: 9px; right: 12px; font-size: .75rem; }
+}
+
+@media (max-width: 370px) {
+  .weather-hero { grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding-inline: 12px; }
+  .weather-hero-icon { width: 52px; height: 52px; }
+  .weather-hero-icon svg { width: 37px; height: 37px; }
+  .weather-temp strong { font-size: 2rem; }
+  .weather-temp span { font-size: .9rem; }
+  .weather-location-large { font-size: 1.1rem; }
+}
+
 /* Original semantic header illustrations. These CSS shapes replace unavailable generated backgrounds without using third-party or copyrighted artwork. */
 .theme-header-art { position: absolute; z-index: 1; top: 0; right: 0; bottom: 0; width: 58%; overflow: hidden; pointer-events: none; }
 .theme-header-art > span { position: absolute; display: block; }
