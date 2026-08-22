@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { GripVertical, Pencil, Check, X } from 'lucide-react'
 import { db } from '../../data/db'
 import { illustrationCatalog as staticCatalog, illustrationCategories, type IllustrationCategory } from '../../assets/illustrations'
-import { getCategoryConfigs, getIllustrationOverrides, mergeCatalog, upsertCategoryConfig, upsertIllustrationOverride } from './illustrationStore'
+import { mergeCatalog, upsertCategoryConfig, upsertIllustrationOverride } from './illustrationStore'
 
 const fontOptions = [
   { label: '預設', value: '' },

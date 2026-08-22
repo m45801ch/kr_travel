@@ -1,5 +1,5 @@
 import { db } from '../../data/db'
-import { illustrationCatalog as staticCatalog, type IllustrationCategory, type IllustrationOption } from '../../assets/illustrations'
+import { type IllustrationCategory, type IllustrationOption } from '../../assets/illustrations'
 
 export type IllustrationOverride = {
   id: string
