@@ -110,13 +110,14 @@
 .weather-card--rain .weather-hero-icon { background: #e5eff8; color: #36536b; border-color: #bfd2e3; }
 .weather-card--night .weather-hero-icon { background: color-mix(in srgb, #172b46 88%, var(--hero-bg)); color: #d8edff; border-color: rgba(170,211,244,.45); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
 .weather-card--night.weather-card--rain .weather-hero-icon { background: #1d344d; color: #bfe4ff; border-color: #5a88ae; }
-.weather-hero-main { position: relative; flex: 1; min-width: 0; display: grid; gap: 4px; }
-.weather-temp { display: flex; align-items: baseline; gap: 6px; line-height: 1; }
+.weather-hero-main { position: relative; flex: 1; min-width: 0; display: grid; gap: 4px; text-align: right; }
+.weather-temp { display: flex; align-items: baseline; justify-content: flex-end; gap: 6px; line-height: 1; }
 .weather-temp strong { font-size: 2.9rem; font-weight: 900; letter-spacing: -0.06em; }
 .weather-temp span { font-size: 1.25rem; font-weight: 700; opacity: .84; }
-.weather-narrative { margin: 0; font-size: .92rem; font-weight: 700; line-height: 1.4; }
+.weather-narrative { margin: 0; font-size: .92rem; font-weight: 700; line-height: 1.4; text-align: right; }
 .weather-error { color: #7A1E2E; background: rgba(255,255,255,.86); padding: 2px 8px; border-radius: 999px; font-size: .78rem; }
-.weather-hero-place { position: relative; display: grid; justify-items: end; gap: 4px; text-align: right; min-width: 0; max-width: 38%; }
+.weather-hero-place { position: relative; display: flex; align-items: baseline; justify-content: flex-end; flex-wrap: wrap; gap: 4px 9px; text-align: right; min-width: 0; max-width: 38%; }
+.weather-location-large { flex-basis: 100%; }
 .weather-location-large { font-size: 1.55rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .weather-updated { font-size: .72rem; font-weight: 700; opacity: .88; white-space: nowrap; }
 .weather-local-time { font-size: .78rem; font-weight: 800; opacity: .96; white-space: nowrap; }
@@ -416,6 +417,7 @@ img.list-photo { object-fit: cover; padding: 0; }
 .line-scanner { display: grid; justify-items: center; gap: 9px; padding: 12px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
 .line-scanner-video { width: min(100%, 300px); aspect-ratio: 1; border-radius: 14px; background: #101820; object-fit: cover; }
 .line-scanner p { margin: 0; color: var(--color-muted); font-size: .78rem; text-align: center; }
+.line-scan-notice { margin: 0; color: var(--color-muted); font-size: .76rem; line-height: 1.45; }
 .line-qr-upload { margin: 0; }
 .line-qr-preview { width: 132px; height: 132px; padding: 6px; border: 1px solid var(--color-border); border-radius: 14px; background: white; object-fit: contain; }
 .line-qr-contact { display: grid; gap: 8px; }
@@ -531,10 +533,13 @@ a.companion-contact:hover, a.companion-contact:focus-visible { background: var(-
   .weather-temp strong { font-size: clamp(2.1rem, 10vw, 2.65rem); }
   .weather-temp span { font-size: 1rem; }
   .weather-narrative { max-width: 100%; font-size: .78rem; line-height: 1.35; overflow-wrap: anywhere; }
-  .weather-hero-place { grid-area: place; display: flex; align-items: baseline; justify-content: flex-start; flex-wrap: wrap; gap: 4px 9px; max-width: none; min-width: 0; padding-top: 9px; border-top: 1px solid color-mix(in srgb, var(--hero-text) 18%, transparent); text-align: left; }
+  .weather-hero-main { text-align: right; }
+  .weather-temp { justify-content: flex-end; }
+  .weather-narrative { text-align: right; }
+  .weather-hero-place { grid-area: place; display: flex; align-items: baseline; justify-content: flex-end; flex-wrap: wrap; gap: 4px 9px; max-width: none; min-width: 0; padding-top: 9px; border-top: 1px solid color-mix(in srgb, var(--hero-text) 18%, transparent); text-align: right; }
   .weather-location-large { max-width: 100%; font-size: 1.25rem; }
   .weather-local-time { font-size: .72rem; }
-  .weather-updated { flex-basis: 100%; font-size: .68rem; white-space: normal; }
+  .weather-updated { flex-basis: auto; font-size: .68rem; white-space: normal; }
   .weather-bg-icon { right: -18px; opacity: .07; transform: translateY(-48%) scale(.78); }
   .weather-stars { top: 9px; right: 12px; font-size: .75rem; }
 }

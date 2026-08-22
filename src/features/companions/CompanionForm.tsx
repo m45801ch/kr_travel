@@ -64,6 +64,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
   const [email, setEmail] = useState(member?.email ?? '')
   const [lineId, setLineId] = useState(member?.lineId ?? '')
   const [lineAddUrl, setLineAddUrl] = useState(member?.lineAddUrl ?? '')
+  const [lineScanNotice, setLineScanNotice] = useState('')
   const [lineQrPhoto, setLineQrPhoto] = useState<File>()
   const [removeLineQrPhoto, setRemoveLineQrPhoto] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
@@ -109,8 +110,9 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
         const value = results[0]?.rawValue
         if (value) {
           const parsed = parseLineQrValue(value)
-          setLineId(parsed.value)
+          setLineId('')
           setLineAddUrl(parsed.addUrl ?? '')
+          setLineScanNotice(parsed.addUrl ? '已取得 LINE 加好友連結；QR Code 無法轉換成可搜尋的 LINE ID，ID 請另外手動輸入。' : '掃描內容不是 LINE 加好友連結，請手動確認內容。')
           setScannerOpen(false)
           return
         }
@@ -210,12 +212,13 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
 
         <div className="form-grid">
           <label>電話<input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="例如：0912-345-678" /></label>
-          <label>LINE ID<input value={lineId} onChange={(event) => { setLineId(event.target.value); setLineAddUrl('') }} placeholder="例如：line_id123 或 @官方帳號" /></label>
+          <label>LINE ID（手動輸入）<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123 或 @官方帳號" /></label>
         </div>
         <div className="line-friend-tools">
           <div className="line-friend-heading"><QrCode size={18} aria-hidden="true" /><strong>LINE 加好友 QR Code</strong><small>選填，可上傳 LINE 裡的 QR Code</small></div>
           <button className="line-scan-button" type="button" onClick={() => { setScannerError(''); setScannerOpen(true) }}><Camera size={17} aria-hidden="true" />開啟相機掃描</button>
           {scannerOpen && <div className="line-scanner" role="dialog" aria-label="掃描 LINE QR Code"><video ref={scannerVideoRef} className="line-scanner-video" playsInline muted /><p>{scannerError || '請將 LINE QR Code 對準框線內'}</p><button className="button-secondary compact" type="button" onClick={() => setScannerOpen(false)}>關閉相機</button></div>}
+          {lineScanNotice && <p className="line-scan-notice" role="status">{lineScanNotice}</p>}
           {displayedLineQrUrl && <img className="line-qr-preview" src={displayedLineQrUrl} alt="LINE 加好友 QR Code 預覽" />}
           <label className="companion-upload line-qr-upload">
             <QrCode size={20} aria-hidden="true" />
