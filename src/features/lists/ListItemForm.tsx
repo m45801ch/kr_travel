@@ -23,7 +23,15 @@ export function ListItemForm({ type, tripId, members, initial, onSave, onDelete,
   useEffect(() => {
     setKeptIds(initial ? getAllPhotoIds(initial) : [])
     setNewFiles([])
-  }, [initial?.id])
+    setName(initial?.name ?? '')
+    setCategory(initial?.category ?? (type === 'shopping' ? '一般' : '行前準備'))
+    setPriority(initial?.priority ?? 'normal')
+    setNote(initial?.note ?? '')
+    setLocation(initial?.location ?? '')
+    setDueDate(initial?.dueDate ?? '')
+    setAssigneeId(initial?.assigneeId ?? '')
+    setIllustrationId(initial?.illustrationId ?? (type === 'shopping' ? 'shopping-bag' : 'airport-travel'))
+  }, [initial?.id, type])
 
   useEffect(() => {
     if (!keptIds.length) {

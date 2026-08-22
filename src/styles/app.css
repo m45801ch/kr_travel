@@ -239,7 +239,7 @@
 .list-filter-tabs button.is-active { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-soft); }
 .list-filter-add { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border: 0; border-radius: 999px; color: white; background: var(--color-accent); font-weight: 800; font-size: .82rem; white-space: nowrap; }
 .list-items { display: grid; gap: 10px; }
-.list-item-card { display: grid; grid-template-columns: 30px 54px 1fr 25px; align-items: center; gap: 10px; padding: 13px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); box-shadow: 0 7px 17px rgba(123, 91, 78, .06); }
+.list-item-card { display: grid; gap: 0; padding: 13px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); box-shadow: 0 7px 17px rgba(123, 91, 78, .06); }
 .list-item-card.is-complete { opacity: .58; }
 .list-item-card.is-complete .list-item-info strong { text-decoration: line-through; }
 .list-checkbox { display: grid; place-items: center; width: 25px; height: 25px; border: 2px solid var(--color-text); border-radius: 8px; color: white; background: transparent; font-weight: 900; }
