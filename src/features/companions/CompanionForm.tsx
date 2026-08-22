@@ -11,6 +11,7 @@ type CompanionFormProps = {
   tripId: string
   member?: Member
   onSave: (member: Member) => void | Promise<void>
+  onDelete?: (member: Member) => void
   onCancel: () => void
 }
 
@@ -38,7 +39,7 @@ function useStoredPhotoUrl(photoId?: string) {
   return photoUrl
 }
 
-export function CompanionForm({ tripId, member, onSave, onCancel }: CompanionFormProps) {
+export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: CompanionFormProps) {
   const [name, setName] = useState(member?.name ?? '')
   const [illustrationId, setIllustrationId] = useState<Member['illustrationId']>(member?.illustrationId ?? 'hanbok-woman')
   const [photo, setPhoto] = useState<File>()
@@ -123,6 +124,11 @@ export function CompanionForm({ tripId, member, onSave, onCancel }: CompanionFor
           <button type="button" className="button-secondary" onClick={onCancel}>取消</button>
           <button type="submit" className="button-primary">{isEditing ? '儲存變更' : '儲存旅伴'}</button>
         </div>
+        {isEditing && member && onDelete && (
+          <button type="button" className="button-danger delete-expense-button" onClick={() => { if (window.confirm(`確定要刪除「${member.name}」嗎？刪除後無法復原。`)) onDelete(member) }}>
+            刪除此旅伴
+          </button>
+        )}
       </form>
     </div>
   )

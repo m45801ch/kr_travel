@@ -41,12 +41,6 @@ export function CompanionPage() {
     setIsAdding(false)
   }
 
-  const removeMember = async (member: Member) => {
-    if (!window.confirm(`確定要刪除「${member.name}」嗎？刪除後無法復原。`)) return
-    await memberRepository.delete(member)
-    await reload()
-  }
-
   if (!trip) {
     return (
       <section className="page-preview">
@@ -81,7 +75,7 @@ export function CompanionPage() {
 
       <div className="companion-list">
         {members.length ? members.map((member) => (
-          <CompanionCard key={member.id} member={member} onEdit={(selectedMember) => { setIsAdding(false); setEditingMember(selectedMember) }} onDelete={(selectedMember) => void removeMember(selectedMember)} />
+          <CompanionCard key={member.id} member={member} onEdit={(selectedMember) => { setIsAdding(false); setEditingMember(selectedMember) }} />
         )) : (
           <div className="empty-activities companion-empty">
             <span className="companion-empty-emoji" aria-hidden="true">🧳</span>
@@ -92,7 +86,7 @@ export function CompanionPage() {
         )}
       </div>
 
-      {(isAdding || editingMember) && <CompanionForm tripId={trip.id} member={editingMember} onSave={async (member) => { await memberRepository.save(member); closeForm(); await reload() }} onCancel={closeForm} />}
+      {(isAdding || editingMember) && <CompanionForm tripId={trip.id} member={editingMember} onSave={async (member) => { await memberRepository.save(member); closeForm(); await reload() }} onDelete={async (member) => { await memberRepository.delete(member); closeForm(); await reload() }} onCancel={closeForm} />}
     </section>
   )
 }

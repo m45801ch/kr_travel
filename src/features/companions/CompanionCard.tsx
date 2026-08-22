@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Camera, Trash2, UserRound } from 'lucide-react'
+import { Camera, UserRound } from 'lucide-react'
 import type { Member } from '../../domain/types'
 import { getIllustration } from '../../assets/illustrations'
 import { getPhoto } from '../lists/photoStore'
@@ -7,10 +7,9 @@ import { getPhoto } from '../lists/photoStore'
 type CompanionCardProps = {
   member: Member
   onEdit: (member: Member) => void
-  onDelete: (member: Member) => void
 }
 
-export function CompanionCard({ member, onEdit, onDelete }: CompanionCardProps) {
+export function CompanionCard({ member, onEdit }: CompanionCardProps) {
   const [photoUrl, setPhotoUrl] = useState<string>()
   const illustration = getIllustration(member.illustrationId)
 
@@ -45,11 +44,6 @@ export function CompanionCard({ member, onEdit, onDelete }: CompanionCardProps) 
         </div>
         {member.photoId && <span className="companion-photo-badge" title="已上傳圖片"><Camera size={16} aria-hidden="true" /></span>}
       </button>
-      <div className="companion-card-actions">
-        <button className="companion-delete-button" type="button" onClick={() => onDelete(member)}>
-          <Trash2 size={16} aria-hidden="true" />刪除旅伴
-        </button>
-      </div>
     </article>
   )
 }
