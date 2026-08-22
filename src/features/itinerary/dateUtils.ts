@@ -10,3 +10,12 @@ export function addDays(dateIso: string, delta: number): string {
 export function isIsoDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value)
 }
+
+export function findTimeConflictIds(activities: Array<{ id: string; time: string }>): Set<string> {
+  const grouped = new Map<string, string[]>()
+  for (const activity of activities) {
+    if (!activity.time) continue
+    grouped.set(activity.time, [...(grouped.get(activity.time) ?? []), activity.id])
+  }
+  return new Set(Array.from(grouped.values()).filter((ids) => ids.length > 1).flat())
+}

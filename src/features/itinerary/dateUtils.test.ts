@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, isIsoDate } from './dateUtils'
+import { addDays, findTimeConflictIds, isIsoDate } from './dateUtils'
 
 describe('date utilities', () => {
   it('adds days without shifting the date across local timezones', () => {
@@ -11,5 +11,15 @@ describe('date utilities', () => {
   it('recognizes the date input format', () => {
     expect(isIsoDate('2027-02-02')).toBe(true)
     expect(isIsoDate('2027/02/02')).toBe(false)
+  })
+})
+
+describe('findTimeConflictIds', () => {
+  it('returns activities sharing the same scheduled time', () => {
+    expect(findTimeConflictIds([
+      { id: 'a', time: '10:00' },
+      { id: 'b', time: '10:00' },
+      { id: 'c', time: '11:00' },
+    ])).toEqual(new Set(['a', 'b']))
   })
 })

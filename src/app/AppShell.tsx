@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { BottomNav } from '../components/BottomNav'
+import { OfflineStatus } from '../components/OfflineStatus'
 import { SakuraEffect } from '../components/SakuraEffect'
 import { db } from '../data/db'
 import { applyTheme } from '../features/settings/themes'
@@ -16,6 +17,7 @@ export function AppShell() {
 
   return (
     <main className="app-shell">
+      <OfflineStatus />
       {settings?.effects && <SakuraEffect key="sakura-effect" />}
       <div className="app-content"><Outlet /></div>
       <BottomNav />

@@ -1,5 +1,5 @@
 import { CalendarDays, Plus } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Activity, Trip, TripDay, WeatherSnapshot } from '../../domain/types'
 import { TripRepository } from '../../data/repositories/tripRepository'
 import { ActivityCard } from './ActivityCard'
@@ -7,11 +7,13 @@ import { ActivityForm } from './ActivityForm'
 import { DateStrip } from './DateStrip'
 import { WeatherCard } from './WeatherCard'
 import { getCachedOrFetchWeather } from '../../integrations/weather/weatherRepository'
-import { addDays, isIsoDate } from './dateUtils'
+import { addDays, findTimeConflictIds, isIsoDate } from './dateUtils'
 import { ThemeHeaderArt } from '../../components/ThemeHeaderArt'
 import { IllustrationPicker } from '../../components/IllustrationPicker'
 import { compressPhoto, deletePhoto, getPhoto, savePhoto } from '../lists/photoStore'
 import { getIllustration } from '../../assets/illustrations'
+import { geocodeDestination } from '../../integrations/weather/openMeteo'
+import { estimateRoute, type RouteEstimate } from './routeEstimate'
 
 const repository = new TripRepository()
 const starterTrip: Trip = { id: 'trip-seoul-demo', title: '首爾小旅行', destination: '首爾', startDate: '2026-08-25', endDate: '2026-08-29', baseCurrency: 'TWD', budgetMinor: 5000000, illustrationId: 'hanbok-woman', themeColor: '#ef8490', active: true }
@@ -46,6 +48,11 @@ export function ItineraryPage() {
   const [dayIllustrationDraft, setDayIllustrationDraft] = useState('hanbok-woman')
   const [dayPhotoIdDraft, setDayPhotoIdDraft] = useState<string>()
   const [dayPhotoPreviewUrl, setDayPhotoPreviewUrl] = useState<string>()
+  const [routeEstimates, setRouteEstimates] = useState<Map<string, { nextStop: string; estimate: RouteEstimate }>>(new Map())
+  const [draggingActivityId, setDraggingActivityId] = useState<string>()
+  const [dragOverActivityId, setDragOverActivityId] = useState<string>()
+  const holdTimerRef = useRef<number | undefined>(undefined)
+  const suppressEditRef = useRef(false)
   const visibleDays = useMemo(() => {
     if (!editingDates || !trip || !isIsoDate(startDateDraft) || !isIsoDate(endDateDraft)) return days
     if (new Date(`${endDateDraft}T00:00:00`) < new Date(`${startDateDraft}T00:00:00`)) return days
@@ -57,6 +64,7 @@ export function ItineraryPage() {
   }, [days, editingDates, endDateDraft, startDateDraft, trip])
   const visibleSelectedDate = useMemo(() => visibleDays.some((day) => day.date === selectedDate) ? selectedDate : (visibleDays[0]?.date ?? selectedDate), [selectedDate, visibleDays])
   const selectedDay = useMemo(() => visibleDays.find((day) => day.date === visibleSelectedDate), [visibleDays, visibleSelectedDate])
+  const conflictIds = useMemo(() => findTimeConflictIds(activities), [activities])
   const dayIllustration = selectedDay ? getIllustration(selectedDay.illustrationId) : getIllustration('hanbok-woman')
 
   useEffect(() => {
@@ -93,6 +101,26 @@ export function ItineraryPage() {
   const loadActivities = useCallback(async (dayId: string) => setActivities(await repository.listActivities(dayId)), [])
 
   useEffect(() => {
+    let cancelled = false
+    if (activities.length < 2) { setRouteEstimates(new Map()); return }
+    void (async () => {
+      const coordinates = await Promise.all(activities.map(async (activity) => {
+        try { return await geocodeDestination(activity.address || activity.locationName || activity.title) } catch { return undefined }
+      }))
+      if (cancelled) return
+      const estimates = new Map<string, { nextStop: string; estimate: RouteEstimate }>()
+      for (let index = 0; index < activities.length - 1; index += 1) {
+        const from = coordinates[index]
+        const to = coordinates[index + 1]
+        if (!from || !to) continue
+        estimates.set(activities[index].id, { nextStop: activities[index + 1].title, estimate: estimateRoute(from, to) })
+      }
+      setRouteEstimates(estimates)
+    })()
+    return () => { cancelled = true }
+  }, [activities])
+
+  useEffect(() => {
     void (async () => {
       let currentTrip = await repository.getActiveTrip()
       if (!currentTrip) { currentTrip = starterTrip; await repository.saveTrip(currentTrip) }
@@ -124,6 +152,36 @@ export function ItineraryPage() {
   }
 
   const saveActivity = async (activity: Activity) => { await repository.saveActivity(activity); setShowForm(false); setEditingActivity(undefined); await loadActivities(activity.dayId) }
+  const moveActivity = async (id: string, direction: -1 | 1) => {
+    const index = activities.findIndex((activity) => activity.id === id)
+    const nextIndex = index + direction
+    if (index < 0 || nextIndex < 0 || nextIndex >= activities.length) return
+    const current = activities[index]
+    const next = activities[nextIndex]
+    if (current.time !== next.time) return
+    await Promise.all([repository.saveActivity({ ...current, order: next.order }), repository.saveActivity({ ...next, order: current.order })])
+    await loadActivities(current.dayId)
+  }
+  const reorderActivity = async (fromId: string, toId: string) => {
+    const fromIndex = activities.findIndex((activity) => activity.id === fromId)
+    const toIndex = activities.findIndex((activity) => activity.id === toId)
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex || activities[fromIndex].time !== activities[toIndex].time) return
+    const reordered = [...activities]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+    await Promise.all(reordered.map((activity, index) => repository.saveActivity({ ...activity, order: index })))
+    setDraggingActivityId(undefined)
+    setDragOverActivityId(undefined)
+    await loadActivities(moved.dayId)
+  }
+  const startLongPress = (id: string) => {
+    window.clearTimeout(holdTimerRef.current)
+    holdTimerRef.current = window.setTimeout(() => { setDraggingActivityId(id); suppressEditRef.current = true }, 450)
+  }
+  const endLongPress = () => {
+    window.clearTimeout(holdTimerRef.current)
+    if (draggingActivityId) suppressEditRef.current = true
+  }
   const deleteActivity = async (id: string) => { await repository.deleteActivity(id); setShowForm(false); setEditingActivity(undefined); if (selectedDay) await loadActivities(selectedDay.id) }
 
   const startEditTitle = () => { if (trip) { setTitleDraft(trip.title); setEditingTitle(true) } }
@@ -230,7 +288,7 @@ export function ItineraryPage() {
             </div>}
         <div className="day-card-heading-actions"><button className="day-illustration-button" type="button" aria-label="編輯本日圖案與照片" title="編輯本日圖案與照片" onClick={() => startEditDay(selectedDay)}><span className="day-illustration" aria-hidden="true">{dayPhotoPreviewUrl ? <img src={dayPhotoPreviewUrl} alt="" /> : dayIllustration.imageUrl ? <img src={dayIllustration.imageUrl} alt="" /> : dayIllustration.emoji}</span></button></div>
       </div>
-      <div className="activity-list">{activities.length ? activities.map((activity) => <ActivityCard key={activity.id} activity={activity} onEdit={(id) => void (async () => { const found = activities.find((a) => a.id === id); if (found) { setEditingActivity(found); setShowForm(true) } })()} />) : <div className="empty-activities">今天還沒有安排,從一個喜歡的地方開始吧。</div>}</div>
+      <div className="activity-list">{activities.length ? activities.map((activity, index) => <div className={`activity-entry${draggingActivityId === activity.id ? ' is-dragging' : ''}${dragOverActivityId === activity.id ? ' is-drag-over' : ''}`} key={activity.id} onPointerDown={() => startLongPress(activity.id)} onPointerUp={() => { if (draggingActivityId && dragOverActivityId) void reorderActivity(draggingActivityId, dragOverActivityId); endLongPress() }} onPointerCancel={endLongPress} onPointerEnter={() => { if (draggingActivityId && draggingActivityId !== activity.id) setDragOverActivityId(activity.id) }}><p className="activity-drag-hint" aria-hidden="true">長按拖曳排序</p>{conflictIds.has(activity.id) && <p className="activity-conflict" role="status">時間與其他行程重疊</p>}<ActivityCard activity={activity} nextStop={routeEstimates.get(activity.id)?.nextStop ?? activities[index + 1]?.title} routeEstimate={routeEstimates.get(activity.id)?.estimate} onMoveUp={index > 0 && activities[index - 1].time === activity.time ? () => void moveActivity(activity.id, -1) : undefined} onMoveDown={index < activities.length - 1 && activities[index + 1].time === activity.time ? () => void moveActivity(activity.id, 1) : undefined} onEdit={(id) => { if (suppressEditRef.current) { suppressEditRef.current = false; return } const found = activities.find((a) => a.id === id); if (found) { setEditingActivity(found); setShowForm(true) } }} /></div>) : <div className="empty-activities">今天還沒有安排,從一個喜歡的地方開始吧。</div>}</div>
       <button className="add-activity-button" type="button" onClick={() => { setEditingActivity(undefined); setShowForm(true) }}><Plus size={18} />新增活動</button>
     </section>
     {showForm && (

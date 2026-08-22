@@ -204,7 +204,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
         <label className="companion-upload">
           <ImagePlus size={20} aria-hidden="true" />
           <span>{isEditing ? '更換旅伴圖片' : '上傳旅伴圖片'} <small>（選填）</small></span>
-          <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) setCropPhoto(file); event.currentTarget.value = '' }} />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) setCropPhoto(file); event.currentTarget.value = '' }} />
         </label>
 
         {isEditing && (member?.photoId || photo) && !removePhoto && (
@@ -213,11 +213,13 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
           </button>
         )}
 
-        <div className="form-grid">
-          <label>電話<input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="例如：0912-345-678" /></label>
-          <label>LINE ID（手動輸入）<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123 或 @官方帳號" /></label>
-        </div>
-        <div className="line-friend-tools">
+        <details className="companion-contact-details">
+          <summary>聯絡方式（電話、LINE、E-mail）</summary>
+          <div className="form-grid">
+            <label>電話<input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="例如：0912-345-678" /></label>
+            <label>LINE ID（手動輸入）<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123 或 @官方帳號" /></label>
+          </div>
+          <div className="line-friend-tools">
           <div className="line-friend-heading"><QrCode size={18} aria-hidden="true" /><strong>LINE 加好友 QR Code</strong><small>選填，可上傳 LINE 裡的 QR Code</small></div>
           <button className="line-scan-button" type="button" onClick={() => { setScannerError(''); setScannerOpen(true) }}><Camera size={17} aria-hidden="true" />開啟相機掃描</button>
           {scannerOpen && <div className="line-scanner" role="dialog" aria-label="掃描 LINE QR Code"><video ref={scannerVideoRef} className="line-scanner-video" playsInline muted /><p>{scannerError || '請將 LINE QR Code 對準框線內'}</p><button className="button-secondary compact" type="button" onClick={() => setScannerOpen(false)}>關閉相機</button></div>}
@@ -229,11 +231,12 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
             <input type="file" accept="image/*" onChange={(event) => { setLineQrPhoto(event.target.files?.[0]); setRemoveLineQrPhoto(false) }} />
           </label>
           {isEditing && (member?.lineQrPhotoId || lineQrPhoto) && !removeLineQrPhoto && <button className="companion-clear-photo-button" type="button" onClick={() => { setLineQrPhoto(undefined); setRemoveLineQrPhoto(true) }}>移除 LINE QR Code</button>}
-        </div>
-        <div className="form-grid">
-          <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="例如：test@example.com" /></label>
-          <label>地址<input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="例如：台北市信義區..." /></label>
-        </div>
+          </div>
+          <div className="form-grid">
+            <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="例如：test@example.com" /></label>
+            <label>地址<input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="例如：台北市信義區..." /></label>
+          </div>
+        </details>
         <label>備註<textarea rows={2} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="緊急聯絡資訊或其他備註" /></label>
 
         <label>

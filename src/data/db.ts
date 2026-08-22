@@ -24,6 +24,7 @@ export class TravelDatabase extends Dexie {
   photos!: Table<{ id: string; blob: Blob }, string>
   illustrationOverrides!: Table<{ id: string; label?: string; category?: string; fontFamily?: string }, string>
   categoryConfigs!: Table<{ category: string; fontFamily?: string; label?: string }, string>
+  backupSnapshots!: Table<{ id: string; createdAt: string; blob: Blob }, string>
 
   constructor(name = 'korea-travel') {
     super(name)
@@ -40,6 +41,7 @@ export class TravelDatabase extends Dexie {
     })
     this.version(2).stores({ photos: 'id' })
     this.version(3).stores({ illustrationOverrides: 'id', categoryConfigs: 'category' })
+    this.version(4).stores({ backupSnapshots: 'id, createdAt' })
   }
 }
 
