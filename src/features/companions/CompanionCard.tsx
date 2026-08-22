@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react'
 import { Camera, Mail, MapPin, MessageCircle, Phone, StickyNote, UserRound } from 'lucide-react'
 import type { Member } from '../../domain/types'
 import { getIllustration } from '../../assets/illustrations'
+import { buildGoogleMapsSearchUrl } from '../../integrations/maps/googleMapsUrl'
 import { getPhoto } from '../lists/photoStore'
+
+function buildLineUrl(lineId: string): string {
+  const trimmed = lineId.trim()
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://line.me/ti/p/${encodeURIComponent(trimmed.replace(/^@/, ''))}`
+}
 
 type CompanionCardProps = {
   member: Member
@@ -48,10 +55,10 @@ export function CompanionCard({ member, onEdit }: CompanionCardProps) {
       </button>
       {hasContact && (
         <div className="companion-contacts">
-          {member.phone && <span className="companion-contact"><Phone size={12} aria-hidden="true" />{member.phone}</span>}
-          {member.email && <span className="companion-contact"><Mail size={12} aria-hidden="true" />{member.email}</span>}
-          {member.lineId && <span className="companion-contact"><MessageCircle size={12} aria-hidden="true" />{member.lineId}</span>}
-          {member.address && <span className="companion-contact"><MapPin size={12} aria-hidden="true" />{member.address}</span>}
+          {member.phone && <a className="companion-contact" href={`tel:${member.phone.replace(/[^+\d]/g, '')}`} aria-label={`撥打電話給 ${member.name}`}><Phone size={12} aria-hidden="true" />{member.phone}</a>}
+          {member.email && <a className="companion-contact" href={`mailto:${member.email.trim()}`} aria-label={`寄信給 ${member.name}`}><Mail size={12} aria-hidden="true" />{member.email}</a>}
+          {member.lineId && <a className="companion-contact" href={buildLineUrl(member.lineId)} target="_blank" rel="noopener noreferrer" aria-label={`開啟 ${member.name} 的 Line`}><MessageCircle size={12} aria-hidden="true" />{member.lineId}</a>}
+          {member.address && <a className="companion-contact" href={buildGoogleMapsSearchUrl(member.address)} target="_blank" rel="noopener noreferrer" aria-label={`在 Google 地圖開啟 ${member.address}`}><MapPin size={12} aria-hidden="true" />{member.address}</a>}
           {member.notes && !member.phone && !member.email && !member.lineId && !member.address && <span className="companion-contact"><StickyNote size={12} aria-hidden="true" />{member.notes}</span>}
           {member.notes && (member.phone || member.email || member.lineId || member.address) && <span className="companion-contact notes"><StickyNote size={12} aria-hidden="true" />{member.notes}</span>}
         </div>
