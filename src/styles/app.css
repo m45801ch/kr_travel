@@ -775,3 +775,36 @@ a.companion-contact:hover, a.companion-contact:focus-visible { background: var(-
 :root[data-app-theme='cyberpunk'] .day-illustration,
 :root[data-app-theme='cyberpunk'] .activity-mark { color: #3de5d0; background: #3c1e43; box-shadow: 0 0 12px rgba(255, 79, 154, .18); }
 :root[data-app-theme='cyberpunk'] .empty-activities { border-color: #31516a; color: #9fb4ce; }
+
+/* Shared card depth: shopping, prep, companions, itinerary, and accounting surfaces. */
+:root:not([data-app-theme='cyberpunk']) .day-card,
+:root:not([data-app-theme='cyberpunk']) .weather-card,
+:root:not([data-app-theme='cyberpunk']) .budget-card,
+:root:not([data-app-theme='cyberpunk']) .expense-row,
+:root:not([data-app-theme='cyberpunk']) .expense-payment-summary,
+:root:not([data-app-theme='cyberpunk']) .payment-stat-card,
+:root:not([data-app-theme='cyberpunk']) .settlement-card,
+:root:not([data-app-theme='cyberpunk']) .list-progress,
+:root:not([data-app-theme='cyberpunk']) .list-item-card,
+:root:not([data-app-theme='cyberpunk']) .companion-summary,
+:root:not([data-app-theme='cyberpunk']) .companion-card,
+:root:not([data-app-theme='cyberpunk']) .activity-card {
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--color-text) 13%, transparent), 0 3px 8px color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+@media (max-width: 600px) {
+  :root:not([data-app-theme='cyberpunk']) .day-card,
+  :root:not([data-app-theme='cyberpunk']) .weather-card,
+  :root:not([data-app-theme='cyberpunk']) .budget-card,
+  :root:not([data-app-theme='cyberpunk']) .expense-row,
+  :root:not([data-app-theme='cyberpunk']) .expense-payment-summary,
+  :root:not([data-app-theme='cyberpunk']) .payment-stat-card,
+  :root:not([data-app-theme='cyberpunk']) .settlement-card,
+  :root:not([data-app-theme='cyberpunk']) .list-progress,
+  :root:not([data-app-theme='cyberpunk']) .list-item-card,
+  :root:not([data-app-theme='cyberpunk']) .companion-summary,
+  :root:not([data-app-theme='cyberpunk']) .companion-card,
+  :root:not([data-app-theme='cyberpunk']) .activity-card {
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--color-text) 16%, transparent), 0 2px 6px color-mix(in srgb, var(--color-text) 9%, transparent);
+  }
+}

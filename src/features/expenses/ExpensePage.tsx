@@ -5,7 +5,7 @@ import type { Currency, Expense, ExpenseSplit, Member } from '../../domain/types
 import { fromMinorUnits, toMinorUnits } from '../../domain/money'
 import { calculateSettlement } from '../../domain/splitting'
 import { ExpenseRepository } from '../../data/repositories/expenseRepository'
-import { MemberRepository } from '../../data/repositories/memberRepository'
+import { createSelfMember, isSelfMember, MemberRepository } from '../../data/repositories/memberRepository'
 import { TripRepository } from '../../data/repositories/tripRepository'
 import { BudgetCard } from './BudgetCard'
 import { ExpenseForm } from './ExpenseForm'
@@ -50,15 +50,10 @@ export function ExpensePage() {
   const reload = async () => {
     const currentTrip = await tripRepository.getActiveTrip()
     if (!currentTrip) return
-    let currentMembers = await memberRepository.listByTrip(currentTrip.id)
-    if (!currentMembers.length) {
-      currentMembers = [{ id: 'member-me', tripId: currentTrip.id, name: '我', color: '#ef8490', illustrationId: 'hanbok-woman', notes: '' }, { id: 'member-friend', tripId: currentTrip.id, name: '旅伴', color: '#8ba9d6', illustrationId: 'hanbok-man', notes: '' }]
-      await Promise.all(currentMembers.map((member) => memberRepository.save(member)))
-    } else if (!currentMembers.some((member) => member.id === 'member-me' || member.name === '我')) {
-      const selfMember: Member = { id: 'member-me', tripId: currentTrip.id, name: '我', color: '#ef8490', illustrationId: 'hanbok-woman', notes: '' }
-      currentMembers = [selfMember, ...currentMembers]
-      await memberRepository.save(selfMember)
-    }
+    const storedMembers = await memberRepository.listByTrip(currentTrip.id)
+    const legacySelf = storedMembers.find(isSelfMember)
+    const companions = storedMembers.filter((member) => !isSelfMember(member))
+    const currentMembers = [createSelfMember(currentTrip.id, legacySelf), ...companions]
     const currentExpenses = await expenseRepository.listByTrip(currentTrip.id)
     const currentSplits = (await Promise.all(currentExpenses.map((expense) => expenseRepository.listSplits(expense.id)))).flat()
     setTrip(currentTrip); setMembers(currentMembers); setExpenses(currentExpenses); setSplits(currentSplits)

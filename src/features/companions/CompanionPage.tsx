@@ -20,7 +20,7 @@ export function CompanionPage() {
     const currentTrip = await tripRepository.getActiveTrip()
     if (!currentTrip) return
     setTrip(currentTrip)
-    setMembers(await memberRepository.listByTrip(currentTrip.id))
+    setMembers(await memberRepository.listCompanionsByTrip(currentTrip.id))
   }
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export function CompanionPage() {
       const currentTrip = await tripRepository.getActiveTrip()
       if (!currentTrip) return
       setTrip(currentTrip)
-      setMembers(await memberRepository.listByTrip(currentTrip.id))
+      setMembers(await memberRepository.listCompanionsByTrip(currentTrip.id))
     })()
   }, [])
 

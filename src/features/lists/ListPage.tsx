@@ -23,7 +23,7 @@ export function ListPage({ type }: { type: ListType }) {
   const [editingItem, setEditingItem] = useState<ListItem>()
   const title = type === 'shopping' ? '購物清單' : '行前準備'
   const subtitle = type === 'shopping' ? '把想帶回家的東西記下來' : '出發前一步一步完成'
-  const reload = useCallback(async () => { const currentTrip = await tripRepository.getActiveTrip(); if (!currentTrip) return; setTrip(currentTrip); setMembers(await memberRepository.listByTrip(currentTrip.id)); setItems(await listRepository.listByTrip(currentTrip.id, type)) }, [type])
+  const reload = useCallback(async () => { const currentTrip = await tripRepository.getActiveTrip(); if (!currentTrip) return; setTrip(currentTrip); setMembers(await memberRepository.listCompanionsByTrip(currentTrip.id)); setItems(await listRepository.listByTrip(currentTrip.id, type)) }, [type])
   useEffect(() => {
     const timer = window.setTimeout(() => { void reload() }, 0)
     return () => window.clearTimeout(timer)
