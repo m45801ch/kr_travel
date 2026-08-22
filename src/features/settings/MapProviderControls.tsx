@@ -3,6 +3,7 @@ import type { MapProvider, Settings } from '../../domain/types'
 const providers: Array<{ id: MapProvider; name: string; description: string }> = [
   { id: 'google', name: 'Google 地圖', description: '適合全球地點與一般導航' },
   { id: 'naver', name: 'Naver Map', description: '韓國地點搜尋與導航較完整' },
+  { id: 'apple', name: 'Apple 地圖', description: '適合 iPhone、iPad 與 Mac 使用者' },
 ]
 
 export function MapProviderControls({ settings, onChange }: { settings: Settings; onChange: (settings: Settings) => void }) {

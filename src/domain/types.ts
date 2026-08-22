@@ -158,4 +158,4 @@ export interface Settings {
   mapProvider?: MapProvider
 }
 
-export type MapProvider = 'google' | 'naver'
+export type MapProvider = 'google' | 'naver' | 'apple'
