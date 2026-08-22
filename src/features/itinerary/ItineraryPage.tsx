@@ -1,4 +1,4 @@
-import { CalendarDays, Pencil, Plus, Sparkles } from 'lucide-react'
+import { CalendarDays, Plus, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Activity, Trip, TripDay, WeatherSnapshot } from '../../domain/types'
 import { TripRepository } from '../../data/repositories/tripRepository'
@@ -150,7 +150,7 @@ export function ItineraryPage() {
         <p className="eyebrow">TRIP</p>
         {editingTitle
           ? <div className="inline-edit"><input className="inline-edit-input" value={titleDraft} onChange={(event) => setTitleDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void saveTitle(); if (event.key === 'Escape') setEditingTitle(false) }} autoFocus onBlur={() => void saveTitle()} aria-label="行程標題" /><button type="button" className="inline-edit-ok" onClick={() => void saveTitle()}>完成</button></div>
-          : <h1 className="editable" role="button" tabIndex={0} onClick={startEditTitle} onKeyDown={(event) => { if (event.key === 'Enter') startEditTitle() }} aria-label="點擊編輯行程標題">{trip.title} <Pencil size={16} aria-hidden="true" /></h1>}
+          : <h1 className="editable" role="button" tabIndex={0} onClick={startEditTitle} onKeyDown={(event) => { if (event.key === 'Enter') startEditTitle() }} aria-label="點擊編輯行程標題">{trip.title}</h1>}
         {editingDates
           ? <div className="inline-edit date-inline-edit">
               <input type="date" className="inline-edit-input" value={startDateDraft} onChange={(event) => setStartDateDraft(event.target.value)} aria-label="開始日期" />
@@ -159,7 +159,7 @@ export function ItineraryPage() {
               <button type="button" className="inline-edit-ok" onClick={() => void saveDates()}>完成</button>
               <button type="button" className="inline-edit-cancel" onClick={cancelDateEdit}>取消</button>
             </div>
-          : <p className="editable-date" role="button" tabIndex={0} onClick={startEditDates} onKeyDown={(event) => { if (event.key === 'Enter') startEditDates() }} aria-label="點擊修改行程日期"><CalendarDays size={15} aria-hidden="true" />{trip.startDate} — {trip.endDate} <Pencil size={14} aria-hidden="true" /></p>}
+          : <p className="editable-date" role="button" tabIndex={0} onClick={startEditDates} onKeyDown={(event) => { if (event.key === 'Enter') startEditDates() }} aria-label="點擊修改行程日期"><CalendarDays size={15} aria-hidden="true" />{trip.startDate} — {trip.endDate}</p>}
       </div>
       <button className="header-icon-button" type="button" aria-label="旅程裝扮"><Sparkles size={21} /></button>
     </header>
@@ -170,7 +170,7 @@ export function ItineraryPage() {
         {editingDay && editingDay.id === selectedDay.id
           ? <div className="day-title-edit"><input className="inline-edit-input" value={dayTitleDraft} onChange={(event) => setDayTitleDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void saveDayTitle(); if (event.key === 'Escape') setEditingDay(undefined) }} autoFocus onBlur={() => void saveDayTitle()} aria-label="本日標題" /><button type="button" className="inline-edit-ok" onClick={() => void saveDayTitle()}>完成</button></div>
           : <div className="editable" role="button" tabIndex={0} onClick={() => startEditDay(selectedDay)} onKeyDown={(event) => { if (event.key === 'Enter') startEditDay(selectedDay) }} aria-label="點擊編輯本日標題">
-              <div><span className="day-kicker">{new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })}</span><h2>{selectedDay.title} <Pencil size={15} aria-hidden="true" /></h2><p>{selectedDay.summary}</p></div>
+              <div><span className="day-kicker">{new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })}</span><h2>{selectedDay.title}</h2><p>{selectedDay.summary}</p></div>
             </div>}
         <span className="day-illustration" aria-hidden="true">{selectedDay.illustrationId === 'korean-house' ? '🏠' : '👘'}</span>
       </div>
