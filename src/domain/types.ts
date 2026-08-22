@@ -56,7 +56,6 @@ export interface Member {
   name: string
   color: string
   illustrationId: IllustrationId
-  photoId?: string
   notes: string
 }
 
@@ -94,6 +93,7 @@ export interface ListItem {
   name: string
   category: string
   photoId?: string
+  photoIds?: string[]
   note: string
   priority: 'normal' | 'important'
   location: string

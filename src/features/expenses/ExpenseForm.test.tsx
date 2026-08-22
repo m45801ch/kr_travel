@@ -56,7 +56,7 @@ describe('ExpenseForm', () => {
     await user.click(screen.getByRole('option', { name: /CHF/ }))
 
     await waitFor(() => expect(screen.getByText('1 CHF = 35 TWD')).toBeInTheDocument())
-    expect(screen.getByLabelText('換算後價格')).toHaveValue('$350.00')
+    expect(screen.getByLabelText('換算後價格')).toHaveValue('$350')
     expect(screen.getByLabelText('換算後價格')).toHaveAttribute('readonly')
     await user.click(screen.getByRole('button', { name: '儲存支出' }))
 

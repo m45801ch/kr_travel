@@ -4,7 +4,6 @@ import { ItineraryPage } from './features/itinerary/ItineraryPage'
 import { ExpensePage } from './features/expenses/ExpensePage'
 import { ListPage } from './features/lists/ListPage'
 import { SettingsPage } from './features/settings/SettingsPage'
-import { CompanionPage } from './features/companions/CompanionPage'
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
           <Route path="/expenses" element={<ExpensePage />} />
           <Route path="/shopping" element={<ListPage type="shopping" />} />
           <Route path="/prep" element={<ListPage type="prep" />} />
-          <Route path="/companions" element={<CompanionPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
