@@ -1,0 +1,17 @@
+import { Map } from 'lucide-react'
+import type { Activity } from '../../domain/types'
+import { getIllustration } from '../../assets/illustrations'
+
+export function ActivityCard({ activity, onEdit }: { activity: Activity; onEdit: (id: string) => void }) {
+  const illustration = getIllustration(activity.illustrationId)
+  return <article className="activity-card">
+    <button className="activity-card-main" type="button" aria-label={`編輯行程 ${activity.title}`} onClick={() => onEdit(activity.id)}>
+      <div className="activity-time">{activity.time || '待定'}</div>
+      <div className="activity-mark" aria-hidden="true">{illustration.emoji}</div>
+      <div className="activity-info"><strong>{activity.title}</strong><span>{activity.locationName || activity.type}</span>{activity.notes && <small>{activity.notes}</small>}</div>
+    </button>
+    <div className="activity-actions">
+      <a href={activity.googleMapsUrl} target="_blank" rel="noreferrer" aria-label={`在 Google Maps 開啟 ${activity.title}`}><Map size={18} /></a>
+    </div>
+  </article>
+}
