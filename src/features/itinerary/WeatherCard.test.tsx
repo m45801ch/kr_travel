@@ -20,7 +20,7 @@ describe('WeatherCard', () => {
       />,
     )
 
-    await user.click(screen.getByText('等待天氣資料，選擇地點後按更新'))
+    await user.click(screen.getByText('等待天氣資料'))
     expect(onRefresh).toHaveBeenCalledTimes(1)
     await user.click(screen.getByRole('button', { name: '搜尋國家城市的天氣地點' }))
     expect(onRefresh).toHaveBeenCalledTimes(1)

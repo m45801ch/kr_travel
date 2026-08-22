@@ -309,7 +309,7 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
     }
     return h < 6 || h >= 18
   }, [currentTime, longitude, weather?.timezone])
-  const narrative = weather ? weatherNarrative(weather.weatherCode) : '等待天氣資料，選擇地點後按更新'
+  const narrative = weather ? weatherNarrative(weather.weatherCode) : '等待天氣資料'
   const advice = weatherAdvice(weather)
   const refreshFromCard = (event: MouseEvent<HTMLElement>) => {
     const target = event.target
@@ -340,7 +340,7 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
       <div className="weather-hero-place">
         <strong className="weather-location-large">{location}</strong>
         <span className="weather-local-time">當地時間 {localTime}</span>
-        <span className="weather-updated">{weather?.updatedAt ? `更新於 ${new Date(weather.updatedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}` : '選擇地點後按更新'}</span>
+        {weather?.updatedAt && <span className="weather-updated">更新於 {new Date(weather.updatedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
     </div>
     {advice && <div className={`weather-advice weather-advice--${theme}`}><span className="weather-advice-icon" aria-hidden="true">{advice.icon}</span><p>{advice.text}</p></div>}

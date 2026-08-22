@@ -54,6 +54,10 @@ export function ExpensePage() {
     if (!currentMembers.length) {
       currentMembers = [{ id: 'member-me', tripId: currentTrip.id, name: '我', color: '#ef8490', illustrationId: 'hanbok-woman', notes: '' }, { id: 'member-friend', tripId: currentTrip.id, name: '旅伴', color: '#8ba9d6', illustrationId: 'hanbok-man', notes: '' }]
       await Promise.all(currentMembers.map((member) => memberRepository.save(member)))
+    } else if (!currentMembers.some((member) => member.id === 'member-me' || member.name === '我')) {
+      const selfMember: Member = { id: 'member-me', tripId: currentTrip.id, name: '我', color: '#ef8490', illustrationId: 'hanbok-woman', notes: '' }
+      currentMembers = [selfMember, ...currentMembers]
+      await memberRepository.save(selfMember)
     }
     const currentExpenses = await expenseRepository.listByTrip(currentTrip.id)
     const currentSplits = (await Promise.all(currentExpenses.map((expense) => expenseRepository.listSplits(expense.id)))).flat()

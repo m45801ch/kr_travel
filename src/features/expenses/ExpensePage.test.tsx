@@ -41,6 +41,17 @@ describe('ExpensePage', () => {
     expect(screen.queryByRole('button', { name: '編輯美食支出' })).not.toBeInTheDocument()
   })
 
+  it('restores 我 as a payer when only added companions exist', async () => {
+    const user = userEvent.setup()
+    await db.members.clear()
+    await db.members.add({ id: 'friend-only', tripId: 'trip-1', name: '旅伴', color: '#8ba9d6', illustrationId: 'hanbok-man', notes: '' })
+    render(<ExpensePage />)
+
+    await user.click(await screen.findByRole('button', { name: /新增支出/ }))
+    expect(screen.getByRole('option', { name: '我' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '旅伴' })).toBeInTheDocument()
+  })
+
   afterEach(async () => {
     await clearDatabase()
     resetSupportedCurrenciesCache()
