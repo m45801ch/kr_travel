@@ -15,5 +15,16 @@
 .date-inline-edit .date-separator { color: var(--color-muted); }
 .day-card-heading .editable { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
 .day-card-heading .editable svg { opacity: .45; margin-top: 7px; }
-.day-title-edit { display: flex; align-items: center; gap: 8px; }
-.day-title-edit .inline-edit-input { flex: 1; min-width: 140px; font-weight: 800; }
+.day-title-edit { display: grid; gap: 12px; width: 100%; min-width: 0; }
+.day-title-edit .inline-edit-input { width: 100%; min-width: 0; font-weight: 800; }
+
+@media (max-width: 600px) {
+  .day-card { min-width: 0; padding: 16px 12px 12px; border-radius: 24px; }
+  .day-card-heading { min-width: 0; padding: 0; }
+  .day-title-edit,
+  .day-title-edit .illustration-picker,
+  .day-title-edit .illustration-picker-browser-content { min-width: 0; max-width: 100%; }
+  .day-title-edit .picker-preview { min-width: 0; padding: 12px; }
+  .day-title-edit .day-photo-upload input { min-width: 0; max-width: 100%; font-size: .78rem; }
+  .day-edit-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+}
