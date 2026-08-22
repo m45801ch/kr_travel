@@ -5,7 +5,7 @@ describe('app themes', () => {
   it('provides the classic palette and three original style themes', () => {
     expect(themeCatalog.map((theme) => theme.id)).toEqual(['classic', 'forest', 'storybook', 'cyberpunk'])
     expect(getThemeDefinition('forest').name).toBe('森林散步')
-    expect(getThemeDefinition('storybook').name).toBe('彩色冒險')
+    expect(getThemeDefinition('storybook').name).toBe('晴空冒險')
     expect(getThemeDefinition('cyberpunk').name).toBe('霓虹夜行')
   })
 

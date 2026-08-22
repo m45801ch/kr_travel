@@ -25,10 +25,10 @@ export const themeCatalog: ThemeDefinition[] = [
   },
   {
     id: 'storybook',
-    name: '彩色冒險',
-    description: '明亮的天空、雲朵與彩色磚塊，帶一點童話冒險感。',
-    accent: '#e46f4c',
-    preview: ['#fff4cf', '#e46f4c', '#4b9ed8'],
+    name: '晴空冒險',
+    description: '天空藍與雲朵白的夏日晴天，搭配明亮的陽光色點綴。',
+    accent: '#4b9ed8',
+    preview: ['#f7fcff', '#4b9ed8', '#f6c759'],
   },
   {
     id: 'cyberpunk',

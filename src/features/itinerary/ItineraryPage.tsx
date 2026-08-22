@@ -8,6 +8,7 @@ import { DateStrip } from './DateStrip'
 import { WeatherCard } from './WeatherCard'
 import { getCachedOrFetchWeather } from '../../integrations/weather/weatherRepository'
 import { addDays, isIsoDate } from './dateUtils'
+import { ThemeHeaderArt } from '../../components/ThemeHeaderArt'
 
 const repository = new TripRepository()
 const starterTrip: Trip = { id: 'trip-seoul-demo', title: '首爾小旅行', destination: '首爾', startDate: '2026-08-25', endDate: '2026-08-29', baseCurrency: 'TWD', budgetMinor: 5000000, illustrationId: 'hanbok-woman', themeColor: '#ef8490', active: true }
@@ -78,9 +79,16 @@ export function ItineraryPage() {
 
   const selectedWeatherLocation = selectedDay?.weatherLocation?.trim() || selectedDay?.city?.trim() || trip?.destination || ''
   const selectedWeatherQuery = selectedDay?.weatherCityQuery?.trim() || selectedWeatherLocation
-  const selectedWeatherCoords = useMemo(() => (selectedDay?.weatherLatitude != null && selectedDay?.weatherLongitude != null ? { latitude: selectedDay.weatherLatitude, longitude: selectedDay.weatherLongitude } : undefined), [selectedDay?.weatherLatitude, selectedDay?.weatherLongitude])
+  const selectedWeatherCoords = useMemo(() => (selectedDay?.weatherLatitude != null && selectedDay?.weatherLongitude != null ? { latitude: selectedDay.weatherLatitude, longitude: selectedDay.weatherLongitude } : undefined), [selectedDay])
 
-  useEffect(() => { if (selectedDay && trip) { void loadActivities(selectedDay.id); void loadWeather(trip, selectedDay.date, selectedWeatherQuery, selectedWeatherCoords) } }, [loadActivities, loadWeather, selectedDay, selectedWeatherQuery, selectedWeatherCoords, trip])
+  useEffect(() => {
+    if (!selectedDay || !trip) return
+    const timer = window.setTimeout(() => {
+      void loadActivities(selectedDay.id)
+      void loadWeather(trip, selectedDay.date, selectedWeatherQuery, selectedWeatherCoords)
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [loadActivities, loadWeather, selectedDay, selectedWeatherQuery, selectedWeatherCoords, trip])
 
   const saveWeatherLocation = async (selection: { location: string; countryCode: string; cityQuery: string; latitude?: number; longitude?: number }) => {
     if (!selectedDay || !trip) return
@@ -146,6 +154,7 @@ export function ItineraryPage() {
   if (loading || !trip || !selectedDay) return <section className="page-preview"><p>載入你的旅程中…</p></section>
   return <section className="itinerary-page">
     <header className="page-header themed-header themed-header-itinerary">
+      <ThemeHeaderArt kind="itinerary" />
       <div className="trip-heading">
         <p className="eyebrow">TRIP</p>
         {editingTitle

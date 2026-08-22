@@ -5,6 +5,7 @@ import { MemberRepository } from '../../data/repositories/memberRepository'
 import { TripRepository } from '../../data/repositories/tripRepository'
 import { CompanionCard } from './CompanionCard'
 import { CompanionForm } from './CompanionForm'
+import { ThemeHeaderArt } from '../../components/ThemeHeaderArt'
 
 const tripRepository = new TripRepository()
 const memberRepository = new MemberRepository()
@@ -54,6 +55,7 @@ export function CompanionPage() {
   return (
     <section className="companion-page">
       <header className="page-header themed-header themed-header-companions">
+        <ThemeHeaderArt kind="companions" />
         <div>
           <p className="eyebrow">TRAVEL COMPANIONS</p>
           <h1>旅伴</h1>

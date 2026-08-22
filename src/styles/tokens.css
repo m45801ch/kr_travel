@@ -49,27 +49,27 @@
 }
 
 :root[data-app-theme='storybook'] {
-  --color-bg: #fff6d9;
-  --color-surface: #fffdf6;
-  --color-surface-soft: #fff0c5;
-  --color-text: #4e4038;
-  --color-muted: #8c786b;
-  --color-accent: #e46f4c;
-  --color-accent-soft: #ffe0c8;
-  --color-border: #efd3a6;
-  --shadow-card: 0 12px 28px rgba(185, 116, 66, .14);
+  --color-bg: #eef8ff;
+  --color-surface: #ffffff;
+  --color-surface-soft: #e4f4ff;
+  --color-text: #26485c;
+  --color-muted: #66869a;
+  --color-accent: #4b9ed8;
+  --color-accent-soft: #dff2ff;
+  --color-border: #b9dff3;
+  --shadow-card: 0 12px 28px rgba(62, 143, 199, .14);
 }
 
 :root[data-theme='dark'][data-app-theme='storybook'] {
-  --color-bg: #241912;
-  --color-surface: #38271d;
-  --color-surface-soft: #513625;
-  --color-text: #fff4df;
-  --color-muted: #d1b9a3;
-  --color-accent: #ff9876;
-  --color-accent-soft: #613425;
-  --color-border: #76513a;
-  --shadow-card: 0 12px 28px rgba(0, 0, 0, .28);
+  --color-bg: #0f2231;
+  --color-surface: #173246;
+  --color-surface-soft: #214863;
+  --color-text: #eff9ff;
+  --color-muted: #a7c9dc;
+  --color-accent: #76c8f2;
+  --color-accent-soft: #1e506e;
+  --color-border: #386a86;
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, .3);
 }
 
 :root[data-app-theme='cyberpunk'] {
@@ -94,4 +94,25 @@
   --color-accent-soft: #431d4b;
   --color-border: #294760;
   --shadow-card: 0 12px 28px rgba(0, 0, 0, .4);
+}
+
+/* Theme-aware budget hero colors. */
+:root {
+  --budget-gradient: linear-gradient(145deg, #f58e99, #ed7787);
+  --budget-shadow: 0 14px 28px rgba(239, 132, 144, .28);
+}
+
+:root[data-app-theme='forest'] {
+  --budget-gradient: linear-gradient(145deg, #70b487, #4f8e69);
+  --budget-shadow: 0 14px 28px rgba(65, 127, 84, .3);
+}
+
+:root[data-app-theme='storybook'] {
+  --budget-gradient: linear-gradient(145deg, #72c4ed, #3f92ce);
+  --budget-shadow: 0 14px 28px rgba(63, 146, 206, .3);
+}
+
+:root[data-app-theme='cyberpunk'] {
+  --budget-gradient: linear-gradient(135deg, #9b3d9e 0%, #ee438f 52%, #2cbfb7 100%);
+  --budget-shadow: 0 14px 28px rgba(255, 79, 154, .28);
 }
