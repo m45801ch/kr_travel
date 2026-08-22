@@ -4,6 +4,7 @@ import type { Member } from '../../domain/types'
 import { getIllustration } from '../../assets/illustrations'
 import { buildGoogleMapsSearchUrl } from '../../integrations/maps/googleMapsUrl'
 import { getPhoto } from '../lists/photoStore'
+import { IllustrationArtwork } from '../../components/IllustrationArtwork'
 
 function buildLineUrl(lineId: string, lineAddUrl?: string): string {
   const trimmed = lineId.trim()
@@ -61,7 +62,7 @@ export function CompanionCard({ member, onEdit }: CompanionCardProps) {
     <article className="companion-card">
       <button className="companion-card-main" type="button" onClick={() => onEdit(member)} aria-label={`編輯${member.name}`}>
         <div className="companion-card-avatar" style={{ '--companion-accent': member.color } as React.CSSProperties}>
-          {photoUrl ? <img src={photoUrl} alt={`${member.name}的旅伴圖片`} /> : illustration.imageUrl ? <img src={illustration.imageUrl} alt={`${member.name}的預設圖案`} /> : <span>{illustration.emoji}</span>}
+          {photoUrl ? <img src={photoUrl} alt={`${member.name}的旅伴圖片`} /> : <IllustrationArtwork illustration={illustration} alt={`${member.name}的預設圖案`} />}
         </div>
         <div className="companion-card-info">
           <span className="companion-card-label"><UserRound size={14} aria-hidden="true" /> TRAVEL COMPANION</span>

@@ -4,6 +4,7 @@ import { getIllustration } from '../../assets/illustrations'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../data/db'
 import { buildMapSearchUrl } from '../../integrations/maps/mapUrls'
+import { IllustrationArtwork } from '../../components/IllustrationArtwork'
 
 export function ActivityCard({ activity, onEdit }: { activity: Activity; onEdit: (id: string) => void }) {
   const illustration = getIllustration(activity.illustrationId)
@@ -15,7 +16,7 @@ export function ActivityCard({ activity, onEdit }: { activity: Activity; onEdit:
   return <article className="activity-card">
     <button className="activity-card-main" type="button" aria-label={`編輯行程 ${activity.title}`} onClick={() => onEdit(activity.id)}>
       <div className="activity-time">{activity.time || '待定'}</div>
-      <div className="activity-mark" aria-hidden="true">{illustration.emoji}</div>
+      <div className="activity-mark"><IllustrationArtwork illustration={illustration} decorative /></div>
       <div className="activity-info"><strong>{activity.title}</strong><span>{activity.locationName || activity.type}</span>{activity.notes && <small>{activity.notes}</small>}</div>
     </button>
     <div className="activity-actions">

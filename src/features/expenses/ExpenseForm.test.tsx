@@ -58,6 +58,9 @@ describe('ExpenseForm', () => {
     await waitFor(() => expect(screen.getByText('1 CHF = 35 TWD')).toBeInTheDocument())
     expect(screen.getByLabelText('換算後價格')).toHaveValue('$350')
     expect(screen.getByLabelText('換算後價格')).toHaveAttribute('readonly')
+    await user.click(screen.getByLabelText('啟用分攤旅伴'))
+    await user.click(screen.getByLabelText('我'))
+    await user.click(screen.getByLabelText('旅伴'))
     await user.click(screen.getByRole('button', { name: '儲存支出' }))
 
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
@@ -102,5 +105,44 @@ describe('ExpenseForm', () => {
     expect(screen.getByDisplayValue('機場快線')).toBeInTheDocument()
     expect(screen.getByLabelText('付款方式')).toHaveValue('apple-pay')
     expect(screen.getByRole('button', { name: '儲存修改' })).toBeInTheDocument()
+  })
+
+  it('restores the last selected currencies when opening a new expense form', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', mockFrankfurter())
+    const values = new Map<string, string>()
+    vi.stubGlobal('localStorage', { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value) } })
+    const first = render(<ExpenseForm tripId="trip-1" baseCurrency="TWD" members={members} onSave={vi.fn()} onCancel={vi.fn()} />)
+
+    await user.click(screen.getByLabelText('原始幣別'))
+    await user.type(screen.getByLabelText('原始幣別'), 'CHF')
+    await user.click(screen.getByRole('option', { name: /CHF/ }))
+    await user.click(screen.getByLabelText('換算為'))
+    await user.type(screen.getByLabelText('換算為'), 'USD')
+    await user.click(screen.getByRole('option', { name: /USD/ }))
+    first.unmount()
+
+    render(<ExpenseForm tripId="trip-1" baseCurrency="TWD" members={members} onSave={vi.fn()} onCancel={vi.fn()} />)
+    expect(screen.getByLabelText('原始幣別')).toHaveValue('瑞士法郎（CHF）')
+    expect(screen.getByLabelText('換算為')).toHaveValue('美元（USD）')
+  })
+
+  it('keeps split participants disabled and empty until enabled', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', mockFrankfurter())
+    const onSave = vi.fn<(expense: Expense, splits: ExpenseSplit[]) => void>()
+
+    render(<ExpenseForm tripId="trip-1" baseCurrency="TWD" members={members} onSave={onSave} onCancel={vi.fn()} />)
+
+    const splitToggle = screen.getByLabelText('啟用分攤旅伴')
+    const selfCheckbox = screen.getByLabelText('我')
+    expect(splitToggle).not.toBeChecked()
+    expect(selfCheckbox).toBeDisabled()
+
+    await user.click(splitToggle)
+    expect(selfCheckbox).toBeEnabled()
+    expect(selfCheckbox).not.toBeChecked()
+    await user.click(selfCheckbox)
+    expect(selfCheckbox).toBeChecked()
   })
 })

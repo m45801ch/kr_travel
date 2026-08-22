@@ -4,6 +4,8 @@ import type { Member } from '../../domain/types'
 import { IllustrationPicker } from '../../components/IllustrationPicker'
 import { compressPhoto, getPhoto, savePhoto } from '../lists/photoStore'
 import { getIllustration } from '../../assets/illustrations'
+import { IllustrationArtwork } from '../../components/IllustrationArtwork'
+import { SquarePhotoCropper } from '../../components/SquarePhotoCropper'
 
 const memberColors = ['#ef8490', '#8ba9d6', '#78bda7', '#b19bd4', '#f4c768']
 
@@ -74,6 +76,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
   const [notes, setNotes] = useState(member?.notes ?? '')
   const [illustrationId, setIllustrationId] = useState<Member['illustrationId']>(member?.illustrationId ?? 'companion-girl')
   const [photo, setPhoto] = useState<File>()
+  const [cropPhoto, setCropPhoto] = useState<File>()
   const [removePhoto, setRemovePhoto] = useState(false)
   const photoPreviewUrl = useMemo(() => photo ? URL.createObjectURL(photo) : undefined, [photo])
   const storedPhotoUrl = useStoredPhotoUrl(member?.photoId)
@@ -190,7 +193,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
 
         <div className="companion-photo-preview">
           <div className="companion-preview-avatar">
-            {displayedPhotoUrl ? <img src={displayedPhotoUrl} alt="旅伴圖片預覽" /> : <span>{fallbackIllustration.emoji}</span>}
+            {displayedPhotoUrl ? <img src={displayedPhotoUrl} alt="旅伴圖片預覽" /> : <IllustrationArtwork illustration={fallbackIllustration} decorative />}
           </div>
           <div>
             <strong>{photo ? photo.name : (storedPhotoUrl && !removePhoto ? '目前旅伴圖片' : '尚未選擇照片')}</strong>
@@ -201,7 +204,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
         <label className="companion-upload">
           <ImagePlus size={20} aria-hidden="true" />
           <span>{isEditing ? '更換旅伴圖片' : '上傳旅伴圖片'} <small>（選填）</small></span>
-          <input type="file" accept="image/*" onChange={(event) => { setPhoto(event.target.files?.[0]); setRemovePhoto(false) }} />
+          <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) setCropPhoto(file); event.currentTarget.value = '' }} />
         </label>
 
         {isEditing && (member?.photoId || photo) && !removePhoto && (
@@ -248,6 +251,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
           </button>
         )}
       </form>
+      {cropPhoto && <SquarePhotoCropper file={cropPhoto} onCancel={() => setCropPhoto(undefined)} onConfirm={(croppedFile) => { setPhoto(croppedFile); setCropPhoto(undefined); setRemovePhoto(false) }} />}
     </div>
   )
 }

@@ -4,6 +4,7 @@ import type { ListItem } from '../../domain/types'
 import { getIllustration } from '../../assets/illustrations'
 import { getAllPhotoIds, getPhoto } from './photoStore'
 import { PhotoLightbox } from './PhotoLightbox'
+import { IllustrationArtwork } from '../../components/IllustrationArtwork'
 
 type ListItemCardProps = {
   item: ListItem
@@ -64,7 +65,7 @@ export function ListItemCard({ item, onToggle, onEdit }: ListItemCardProps) {
             )
           ) : (
             <div className={illustration.imageUrl ? 'list-photo has-illustration' : 'list-photo'} aria-hidden="true">
-              {illustration.imageUrl ? <img src={illustration.imageUrl} alt="" /> : illustration.emoji}
+              <IllustrationArtwork illustration={illustration} decorative />
             </div>
           )}
           <button className="list-item-main" type="button" aria-label={`編輯 ${item.name}`} onClick={() => onEdit(item.id)}>

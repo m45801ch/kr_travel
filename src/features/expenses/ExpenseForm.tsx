@@ -6,6 +6,7 @@ import { getLatestExchangeRate, getSupportedCurrencies } from '../../integration
 import { splitExpense, type SplitParticipant } from '../../domain/splitting'
 import { CurrencyPicker } from './CurrencyPicker'
 import { normalizePaymentMethod, paymentMethodOptions } from './paymentMethods'
+import { loadExpenseCurrencyPreferences, saveExpenseCurrencyPreference } from './expenseCurrencyPreferences'
 
 type RateStatus = 'idle' | 'loading' | 'success' | 'error'
 type CurrencyStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -23,9 +24,10 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
   onCancel: () => void
 }) {
   const isEditing = Boolean(initial)
+  const currencyPreferences = useState(loadExpenseCurrencyPreferences)[0]
   const [amount, setAmount] = useState(initial ? String(initial.amountMinor / 10 ** getCurrencyFractionDigits(initial.currency)) : '')
-  const [currency, setCurrency] = useState<Currency>(initial?.currency ?? 'JPY')
-  const [conversionCurrency, setConversionCurrency] = useState<Currency>(initial?.conversionCurrency ?? 'TWD')
+  const [currency, setCurrency] = useState<Currency>(initial?.currency ?? currencyPreferences.currency ?? 'JPY')
+  const [conversionCurrency, setConversionCurrency] = useState<Currency>(initial?.conversionCurrency ?? currencyPreferences.conversionCurrency ?? 'TWD')
   const [conversionRate, setConversionRate] = useState(String(initial?.conversionRate ?? initial?.exchangeRateToBase ?? 1))
   const [baseRate, setBaseRate] = useState(initial?.exchangeRateToBase ?? 1)
   const [rateDate, setRateDate] = useState<string>()
@@ -41,7 +43,8 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
   const [payerId, setPayerId] = useState(initial?.payerId ?? members[0]?.id ?? '')
   const [paymentMethod, setPaymentMethod] = useState(initial?.paymentMethod ? normalizePaymentMethod(initial.paymentMethod) : 'cash')
   const [splitMode, setSplitMode] = useState<SplitMode>(initial?.splitMode ?? 'equal')
-  const [selectedIds, setSelectedIds] = useState<string[]>(initialSplits.length ? initialSplits.map((split) => split.memberId) : members.map((member) => member.id))
+  const [splitEnabled, setSplitEnabled] = useState(initialSplits.length > 0)
+  const [selectedIds, setSelectedIds] = useState<string[]>(initialSplits.length ? initialSplits.map((split) => split.memberId) : [])
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>(() => Object.fromEntries(initialSplits.map((split) => [split.memberId, String(split.amountMinor)])))
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [formError, setFormError] = useState('')
@@ -112,6 +115,16 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
     if (window.confirm('確定要刪除這筆支出嗎？此操作無法復原。')) onDelete(initial)
   }
 
+  const chooseCurrency = (nextCurrency: Currency) => {
+    setCurrency(nextCurrency)
+    saveExpenseCurrencyPreference('currency', nextCurrency)
+  }
+
+  const chooseConversionCurrency = (nextCurrency: Currency) => {
+    setConversionCurrency(nextCurrency)
+    saveExpenseCurrencyPreference('conversionCurrency', nextCurrency)
+  }
+
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     try {
@@ -141,7 +154,7 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
         splitMode,
         notes: notes.trim(),
       }
-      onSave(expense, splitExpense(expense, participants))
+      onSave(expense, splitEnabled ? splitExpense(expense, participants) : [])
     } catch (error) {
       setFormError(error instanceof Error ? error.message : '無法儲存此筆支出')
     }
@@ -149,15 +162,15 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
 
   return <div className="modal-backdrop"><form className="activity-form" onSubmit={submit}>
     <div className="form-heading"><div><p className="eyebrow">{isEditing ? 'EDIT EXPENSE' : 'NEW EXPENSE'}</p><h2>{isEditing ? '編輯支出' : '新增支出'}</h2></div><button type="button" onClick={onCancel} aria-label="關閉">×</button></div>
-    <div className="form-grid"><label>金額<input required inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" /></label><CurrencyPicker label="原始幣別" value={currency} options={availableCurrencies} onChange={setCurrency} disabled={currencyStatus === 'loading'} /></div>
-    <div className="form-grid"><label>換算後價格<input aria-label="換算後價格" readOnly value={rateStatus === 'loading' ? '正在換算…' : convertedPrice || '—'} /></label><CurrencyPicker label="換算為" value={conversionCurrency} options={availableCurrencies} onChange={setConversionCurrency} preferredCodes={conversionPreferredCurrencies} disabled={currencyStatus === 'loading'} /></div>
+    <div className="form-grid"><label>金額<input required inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0" /></label><CurrencyPicker label="原始幣別" value={currency} options={availableCurrencies} onChange={chooseCurrency} disabled={currencyStatus === 'loading'} /></div>
+    <div className="form-grid"><label>換算後價格<input aria-label="換算後價格" readOnly value={rateStatus === 'loading' ? '正在換算…' : convertedPrice || '—'} /></label><CurrencyPicker label="換算為" value={conversionCurrency} options={availableCurrencies} onChange={chooseConversionCurrency} preferredCodes={conversionPreferredCurrencies} disabled={currencyStatus === 'loading'} /></div>
     <div className="currency-load-status" aria-live="polite"><span>{currencyStatus === 'loading' ? '正在載入 Frankfurter 支援幣別…' : currencyStatus === 'success' ? `已載入 ${availableCurrencies.length} 種可搜尋幣別。` : currencyStatus === 'error' ? `${currencyError}，目前顯示常用幣別。` : '可搜尋幣別名稱、中文名稱、代碼或符號。'}</span><button className="button-secondary compact" type="button" onClick={() => void loadCurrencies()} disabled={currencyStatus === 'loading'}>{currencyStatus === 'loading' ? '載入中…' : '重新載入幣別'}</button></div>
     <div className="rate-panel" aria-live="polite"><div><span>自動匯率</span><strong>1 {currency} = {conversionRate || '—'} {conversionCurrency}</strong><small>換算後價格會隨金額與目標幣別自動更新。</small></div><button className="button-secondary compact" type="button" onClick={() => void refreshRate()} disabled={rateStatus === 'loading'}>{rateStatus === 'loading' ? '更新中…' : '更新最新匯率'}</button><p className={rateStatus === 'error' ? 'rate-message is-error' : 'rate-message'}>{rateStatus === 'loading' ? '正在取得最新可用匯率…' : rateStatus === 'error' ? rateError : rateDate ? `資料日期：${rateDate}` : isEditing ? '保留此筆記錄原本的匯率。' : '將自動取得最新可用匯率。'}</p></div>
     {conversionCurrency !== baseCurrency && <p className="base-rate-note">旅行預算會另以 1 {currency} = {baseRate} {baseCurrency} 計入，結算幣別為{currencyLabel(baseCurrency)}。</p>}
-    <div className="form-grid"><label>類別<select value={category} onChange={(event) => setCategory(event.target.value)}><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option><option>自定</option></select>{category === '自定' && <input value={customCategory} onChange={(event) => setCustomCategory(event.target.value)} placeholder="輸入自定類別名稱" style={{ marginTop: 6 }} />}</label><label>付款方式<select aria-label="付款方式" value={paymentMethod} onChange={(event) => setPaymentMethod(normalizePaymentMethod(event.target.value))}>{paymentMethodOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label></div>
+    <div className="form-grid expense-category-payment-grid"><label>類別<select value={category} onChange={(event) => setCategory(event.target.value)}><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option><option>自定</option></select>{category === '自定' && <input value={customCategory} onChange={(event) => setCustomCategory(event.target.value)} placeholder="輸入自定類別名稱" style={{ marginTop: 6 }} />}</label><label>付款方式<select aria-label="付款方式" value={paymentMethod} onChange={(event) => setPaymentMethod(normalizePaymentMethod(event.target.value))}>{paymentMethodOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label></div>
     <label>付款人<select value={payerId} onChange={(event) => setPayerId(event.target.value)}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-    <div className="split-heading"><strong>分攤旅伴</strong><div className="split-toggle"><button className={splitMode === 'equal' ? 'is-active' : ''} type="button" onClick={() => setSplitMode('equal')}>平均</button><button className={splitMode === 'custom' ? 'is-active' : ''} type="button" onClick={() => setSplitMode('custom')}>自訂</button></div></div>
-    <div className="member-checks">{members.map((member) => <label className="member-check" key={member.id}><input type="checkbox" checked={selectedIds.includes(member.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} /><span>{member.name}</span>{splitMode === 'custom' && selectedIds.includes(member.id) && <input aria-label={`${member.name}分攤金額`} inputMode="numeric" value={customAmounts[member.id] ?? ''} onChange={(event) => setCustomAmounts((current) => ({ ...current, [member.id]: event.target.value }))} placeholder="金額" />}</label>)}</div>
+    <div className="split-heading"><label className="split-enable"><input type="checkbox" aria-label="啟用分攤旅伴" checked={splitEnabled} onChange={(event) => { const enabled = event.target.checked; setSplitEnabled(enabled); if (!enabled) setSelectedIds([]) }} /><strong>分攤旅伴</strong></label>{splitEnabled && <div className="split-toggle"><button className={splitMode === 'equal' ? 'is-active' : ''} type="button" onClick={() => setSplitMode('equal')}>平均</button><button className={splitMode === 'custom' ? 'is-active' : ''} type="button" onClick={() => setSplitMode('custom')}>自訂</button></div>}</div>
+    <div className="member-checks">{members.map((member) => <label className="member-check" key={member.id}><input type="checkbox" checked={selectedIds.includes(member.id)} disabled={!splitEnabled} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} /><span>{member.name}</span>{splitEnabled && splitMode === 'custom' && selectedIds.includes(member.id) && <input aria-label={`${member.name}分攤金額`} inputMode="numeric" value={customAmounts[member.id] ?? ''} onChange={(event) => setCustomAmounts((current) => ({ ...current, [member.id]: event.target.value }))} placeholder="金額" />}</label>)}</div>
     <label>備註<textarea rows={2} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="記下這筆支出的細節" /></label>
     {formError && <p className="form-error" role="alert">{formError}</p>}
     <div className="form-actions"><button type="button" className="button-secondary" onClick={onCancel}>取消</button><button type="submit" className="button-primary" disabled={rateStatus === 'loading'}>{isEditing ? '儲存修改' : '儲存支出'}</button></div>

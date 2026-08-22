@@ -6,6 +6,7 @@ import { getIllustration, type IllustrationOption } from '../assets/illustration
 import { illustrationCategories as staticCategories, type IllustrationCategory } from '../assets/illustrations'
 import { mergeCatalog } from '../features/illustrations/illustrationStore'
 import { illustrationCatalog as staticCatalog } from '../assets/illustrations'
+import { IllustrationArtwork } from './IllustrationArtwork'
 
 interface IllustrationPickerProps {
   value: string
@@ -42,7 +43,7 @@ export function IllustrationPicker({ value, onChange, categories, showLabel = tr
   return (
     <section className="illustration-picker" aria-label="選擇圖案">
       <div className="picker-preview" style={{ '--illustration-accent': selected.accent } as React.CSSProperties}>
-        {selected.imageUrl ? <img className="picker-preview-image" src={selected.imageUrl} alt="" /> : <span className="picker-emoji" aria-hidden="true">{selected.emoji}</span>}
+        <IllustrationArtwork illustration={selected} className={selected.imageUrl ? 'picker-preview-image' : 'picker-emoji'} decorative />
         {showLabel && <div><strong>{selected.label}</strong><span>目前選擇</span></div>}
       </div>
       <details className="illustration-picker-browser">
@@ -59,7 +60,7 @@ export function IllustrationPicker({ value, onChange, categories, showLabel = tr
             {options.map((option: IllustrationOption) => (
               <button className={value === option.id ? 'illustration-option is-selected' : 'illustration-option'} key={option.id} type="button" aria-label={option.label} onClick={() => onChange(option.id)}>
                 <span className="illustration-art" style={{ '--illustration-accent': option.accent } as React.CSSProperties}>
-                  {option.imageUrl ? <img src={option.imageUrl} alt="" /> : option.emoji}
+                  <IllustrationArtwork illustration={option} decorative />
                 </span>
                 <span>{option.label}</span>
               </button>
