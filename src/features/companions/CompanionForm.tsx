@@ -41,6 +41,11 @@ function useStoredPhotoUrl(photoId?: string) {
 
 export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: CompanionFormProps) {
   const [name, setName] = useState(member?.name ?? '')
+  const [phone, setPhone] = useState(member?.phone ?? '')
+  const [email, setEmail] = useState(member?.email ?? '')
+  const [lineId, setLineId] = useState(member?.lineId ?? '')
+  const [address, setAddress] = useState(member?.address ?? '')
+  const [notes, setNotes] = useState(member?.notes ?? '')
   const [illustrationId, setIllustrationId] = useState<Member['illustrationId']>(member?.illustrationId ?? 'hanbok-woman')
   const [photo, setPhoto] = useState<File>()
   const [removePhoto, setRemovePhoto] = useState(false)
@@ -70,7 +75,11 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
       name: name.trim(),
       color: member?.color ?? memberColors[Date.now() % memberColors.length],
       illustrationId,
-      notes: member?.notes ?? '',
+      notes: notes.trim(),
+      phone: phone.trim() || undefined,
+      email: email.trim() || undefined,
+      lineId: lineId.trim() || undefined,
+      address: address.trim() || undefined,
     }
     if (photoId) nextMember.photoId = photoId
 
@@ -114,6 +123,16 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
             移除目前圖片
           </button>
         )}
+
+        <div className="form-grid">
+          <label>電話<input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="例如：0912-345-678" /></label>
+          <label>Line<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123" /></label>
+        </div>
+        <div className="form-grid">
+          <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="例如：test@example.com" /></label>
+          <label>地址<input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="例如：台北市信義區..." /></label>
+        </div>
+        <label>備註<textarea rows={2} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="緊急聯絡資訊或其他備註" /></label>
 
         <label>
           預設頭像

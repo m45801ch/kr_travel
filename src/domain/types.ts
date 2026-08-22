@@ -58,6 +58,10 @@ export interface Member {
   illustrationId: IllustrationId
   photoId?: string
   notes: string
+  phone?: string
+  email?: string
+  lineId?: string
+  address?: string
 }
 
 export interface Expense {

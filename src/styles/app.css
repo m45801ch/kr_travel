@@ -340,6 +340,9 @@ img.list-photo { object-fit: cover; padding: 0; }
 .companion-upload input { display: none; }
 .companion-clear-photo-button { justify-self: start; padding: 5px 0; border: 0; color: #b43030; background: transparent; font-size: .78rem; font-weight: 800; }
 .companion-clear-photo-button:hover, .companion-clear-photo-button:focus-visible { color: #8c2020; outline: none; text-decoration: underline; }
+.companion-contacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--color-border); }
+.companion-contact { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; overflow: hidden; padding: 4px 8px; border-radius: 999px; background: var(--color-surface-soft); color: var(--color-muted); font-size: .72rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.companion-contact.notes { background: #fff3d9; color: #a28666; }
 .list-item-card { display: grid; gap: 0; padding: 13px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); box-shadow: 0 7px 17px rgba(123, 91, 78, .06); }
 .list-item-card.is-important { border-color: #f0a4aa; background: #fff0f1; box-shadow: 0 7px 17px rgba(180, 48, 48, .08); }
 .list-item-card-content { display: grid; grid-template-columns: 30px 54px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; }

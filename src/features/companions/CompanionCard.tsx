@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Camera, UserRound } from 'lucide-react'
+import { Camera, Mail, MapPin, MessageCircle, Phone, StickyNote, UserRound } from 'lucide-react'
 import type { Member } from '../../domain/types'
 import { getIllustration } from '../../assets/illustrations'
 import { getPhoto } from '../lists/photoStore'
@@ -31,6 +31,8 @@ export function CompanionCard({ member, onEdit }: CompanionCardProps) {
     }
   }, [member.photoId])
 
+  const hasContact = Boolean(member.phone || member.email || member.lineId || member.address || member.notes)
+
   return (
     <article className="companion-card">
       <button className="companion-card-main" type="button" onClick={() => onEdit(member)} aria-label={`編輯${member.name}`}>
@@ -44,6 +46,16 @@ export function CompanionCard({ member, onEdit }: CompanionCardProps) {
         </div>
         {member.photoId && <span className="companion-photo-badge" title="已上傳圖片"><Camera size={16} aria-hidden="true" /></span>}
       </button>
+      {hasContact && (
+        <div className="companion-contacts">
+          {member.phone && <span className="companion-contact"><Phone size={12} aria-hidden="true" />{member.phone}</span>}
+          {member.email && <span className="companion-contact"><Mail size={12} aria-hidden="true" />{member.email}</span>}
+          {member.lineId && <span className="companion-contact"><MessageCircle size={12} aria-hidden="true" />{member.lineId}</span>}
+          {member.address && <span className="companion-contact"><MapPin size={12} aria-hidden="true" />{member.address}</span>}
+          {member.notes && !member.phone && !member.email && !member.lineId && !member.address && <span className="companion-contact"><StickyNote size={12} aria-hidden="true" />{member.notes}</span>}
+          {member.notes && (member.phone || member.email || member.lineId || member.address) && <span className="companion-contact notes"><StickyNote size={12} aria-hidden="true" />{member.notes}</span>}
+        </div>
+      )}
     </article>
   )
 }
