@@ -1,4 +1,4 @@
-import { CalendarDays, ListChecks, Settings, ShoppingBag, WalletCards } from 'lucide-react'
+import { CalendarDays, ListChecks, Settings, ShoppingBag, UsersRound, WalletCards } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const items = [
@@ -6,6 +6,7 @@ const items = [
   { label: '記帳', path: '/expenses', Icon: WalletCards },
   { label: '購物', path: '/shopping', Icon: ShoppingBag },
   { label: '準備', path: '/prep', Icon: ListChecks },
+  { label: '旅伴', path: '/companions', Icon: UsersRound },
   { label: '設置', path: '/settings', Icon: Settings },
 ]
 

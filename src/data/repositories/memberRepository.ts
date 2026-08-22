@@ -1,5 +1,5 @@
-import { db, type TravelDatabase } from '../db'
 import type { Member } from '../../domain/types'
+import { db, type TravelDatabase } from '../db'
 
 export class MemberRepository {
   private readonly database: TravelDatabase
@@ -13,6 +13,17 @@ export class MemberRepository {
   }
 
   async save(member: Member): Promise<void> {
-    await this.database.members.put(member)
+    await this.database.transaction('rw', this.database.members, this.database.photos, async () => {
+      const previous = await this.database.members.get(member.id)
+      await this.database.members.put(member)
+      if (previous?.photoId && previous.photoId !== member.photoId) await this.database.photos.delete(previous.photoId)
+    })
+  }
+
+  async delete(member: Member): Promise<void> {
+    await this.database.transaction('rw', this.database.members, this.database.photos, async () => {
+      await this.database.members.delete(member.id)
+      if (member.photoId) await this.database.photos.delete(member.photoId)
+    })
   }
 }

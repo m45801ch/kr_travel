@@ -56,6 +56,7 @@ export interface Member {
   name: string
   color: string
   illustrationId: IllustrationId
+  photoId?: string
   notes: string
 }
 
