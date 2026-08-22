@@ -1,6 +1,6 @@
 import { RotateCcw, Shuffle } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { getIllustration, illustrationCatalog, type IllustrationCategory, type IllustrationOption } from '../assets/illustrations'
+import { getIllustration, illustrationCatalog, illustrationCategories, type IllustrationCategory, type IllustrationOption } from '../assets/illustrations'
 
 interface IllustrationPickerProps {
   value: string
@@ -10,7 +10,7 @@ interface IllustrationPickerProps {
 
 export function IllustrationPicker({ value, onChange, categories }: IllustrationPickerProps) {
   const [category, setCategory] = useState<'全部' | IllustrationCategory>('全部')
-  const allowed = categories ?? ['人物', '服裝', '配件', '旅遊']
+  const allowed = categories ?? illustrationCategories
   const options = useMemo(() => illustrationCatalog.filter((item) => category === '全部' || item.category === category), [category])
   const selected = getIllustration(value)
   const randomize = () => onChange(options[Math.floor(Math.random() * options.length)]?.id ?? selected.id)
@@ -18,7 +18,7 @@ export function IllustrationPicker({ value, onChange, categories }: Illustration
   return (
     <section className="illustration-picker" aria-label="選擇圖案">
       <div className="picker-preview" style={{ '--illustration-accent': selected.accent } as React.CSSProperties}>
-        <span className="picker-emoji" aria-hidden="true">{selected.emoji}</span>
+        {selected.imageUrl ? <img className="picker-preview-image" src={selected.imageUrl} alt="" /> : <span className="picker-emoji" aria-hidden="true">{selected.emoji}</span>}
         <div><strong>{selected.label}</strong><span>目前選擇</span></div>
       </div>
       <div className="picker-tabs" role="tablist" aria-label="圖案分類">
@@ -29,7 +29,9 @@ export function IllustrationPicker({ value, onChange, categories }: Illustration
       <div className="illustration-grid">
         {options.map((option: IllustrationOption) => (
           <button className={value === option.id ? 'illustration-option is-selected' : 'illustration-option'} key={option.id} type="button" aria-label={option.label} onClick={() => onChange(option.id)}>
-            <span className="illustration-art" style={{ '--illustration-accent': option.accent } as React.CSSProperties}>{option.emoji}</span>
+            <span className="illustration-art" style={{ '--illustration-accent': option.accent } as React.CSSProperties}>
+              {option.imageUrl ? <img src={option.imageUrl} alt="" /> : option.emoji}
+            </span>
             <span>{option.label}</span>
           </button>
         ))}

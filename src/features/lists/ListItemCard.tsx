@@ -16,6 +16,7 @@ export function ListItemCard({ item, onToggle, onEdit }: ListItemCardProps) {
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({})
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const photoIds = getAllPhotoIds(item)
+  const photoIdsKey = photoIds.join('|')
   const firstUrl = photoIds.length ? photoUrls[photoIds[0]] : undefined
   const cardClassName = [
     'list-item-card',
@@ -24,14 +25,12 @@ export function ListItemCard({ item, onToggle, onEdit }: ListItemCardProps) {
   ].filter(Boolean).join(' ')
 
   useEffect(() => {
-    if (!photoIds.length) {
-      setPhotoUrls({})
-      return
-    }
+    if (!photoIdsKey) return
     let cancelled = false
     const urls: Record<string, string> = {}
+    const currentPhotoIds = photoIdsKey.split('|')
     void Promise.all(
-      photoIds.map(async (id) => {
+      currentPhotoIds.map(async (id) => {
         const blob = await getPhoto(id)
         if (!blob || cancelled) return
         urls[id] = URL.createObjectURL(blob)
@@ -43,7 +42,7 @@ export function ListItemCard({ item, onToggle, onEdit }: ListItemCardProps) {
       cancelled = true
       Object.values(urls).forEach((url) => URL.revokeObjectURL(url))
     }
-  }, [photoIds.join('|')])
+  }, [photoIdsKey])
 
   const allUrls = photoIds.map((id) => photoUrls[id]).filter(Boolean) as string[]
 
@@ -64,7 +63,9 @@ export function ListItemCard({ item, onToggle, onEdit }: ListItemCardProps) {
               <div className="list-photo" aria-hidden="true">📷</div>
             )
           ) : (
-            <div className="list-photo" aria-hidden="true">{illustration.emoji}</div>
+            <div className={illustration.imageUrl ? 'list-photo has-illustration' : 'list-photo'} aria-hidden="true">
+              {illustration.imageUrl ? <img src={illustration.imageUrl} alt="" /> : illustration.emoji}
+            </div>
           )}
           <button className="list-item-main" type="button" aria-label={`編輯 ${item.name}`} onClick={() => onEdit(item.id)}>
             <div className="list-item-info">

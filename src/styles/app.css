@@ -358,3 +358,10 @@ img.list-photo { object-fit: cover; padding: 0; }
   .companion-card-main { grid-template-columns: 60px minmax(0, 1fr) auto; gap: 10px; }
   .companion-card-avatar { width: 60px; height: 60px; border-radius: 20px; }
 }
+
+/* Built-in illustration image assets. */
+.picker-preview-image { display: block; flex: 0 0 64px; width: 64px; height: 64px; object-fit: contain; }
+.illustration-art { display: grid; place-items: center; overflow: hidden; }
+.illustration-art img { display: block; width: 100%; height: 100%; padding: 2px; object-fit: contain; }
+.list-photo.has-illustration { padding: 3px; }
+.list-photo.has-illustration img { display: block; width: 100%; height: 100%; object-fit: contain; }
