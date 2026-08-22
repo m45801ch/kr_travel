@@ -3,6 +3,7 @@ export type ListType = 'shopping' | 'prep'
 export type SplitMode = 'equal' | 'custom'
 export type ActivityType = 'spot' | 'food' | 'transit' | 'stay' | 'other'
 export type IllustrationId = string
+export type AppThemeId = 'classic' | 'forest' | 'storybook' | 'cyberpunk'
 
 export interface Trip {
   id: string
@@ -132,6 +133,7 @@ export interface Settings {
   id: 'global'
   activeTripId?: string
   themeColor: string
+  themeId?: AppThemeId
   fontScale: number
   darkMode: boolean
   effects: boolean

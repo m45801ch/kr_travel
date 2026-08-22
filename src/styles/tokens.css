@@ -22,3 +22,76 @@
   --color-accent-soft: #5b3944;
   --shadow-card: 0 12px 28px rgba(0, 0, 0, .22);
 }
+
+/* App theme palettes. Theme-specific values intentionally use original color systems and patterns. */
+:root[data-app-theme='forest'] {
+  --color-bg: #edf6e8;
+  --color-surface: #fffdf6;
+  --color-surface-soft: #e5f0df;
+  --color-text: #3f4c40;
+  --color-muted: #728273;
+  --color-accent: #5e9f78;
+  --color-accent-soft: #dff0db;
+  --color-border: #c9dfca;
+  --shadow-card: 0 12px 28px rgba(65, 105, 69, .13);
+}
+
+:root[data-theme='dark'][data-app-theme='forest'] {
+  --color-bg: #122319;
+  --color-surface: #1c3022;
+  --color-surface-soft: #29432f;
+  --color-text: #eff8e9;
+  --color-muted: #b4c9b2;
+  --color-accent: #83c997;
+  --color-accent-soft: #244d35;
+  --color-border: #3b6045;
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, .25);
+}
+
+:root[data-app-theme='storybook'] {
+  --color-bg: #fff6d9;
+  --color-surface: #fffdf6;
+  --color-surface-soft: #fff0c5;
+  --color-text: #4e4038;
+  --color-muted: #8c786b;
+  --color-accent: #e46f4c;
+  --color-accent-soft: #ffe0c8;
+  --color-border: #efd3a6;
+  --shadow-card: 0 12px 28px rgba(185, 116, 66, .14);
+}
+
+:root[data-theme='dark'][data-app-theme='storybook'] {
+  --color-bg: #241912;
+  --color-surface: #38271d;
+  --color-surface-soft: #513625;
+  --color-text: #fff4df;
+  --color-muted: #d1b9a3;
+  --color-accent: #ff9876;
+  --color-accent-soft: #613425;
+  --color-border: #76513a;
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, .28);
+}
+
+:root[data-app-theme='cyberpunk'] {
+  --color-bg: #0d1421;
+  --color-surface: #141f31;
+  --color-surface-soft: #1c2d43;
+  --color-text: #f5f6ff;
+  --color-muted: #a9b8d3;
+  --color-accent: #ff4f9a;
+  --color-accent-soft: #3c1e43;
+  --color-border: #31516a;
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, .32);
+}
+
+:root[data-theme='dark'][data-app-theme='cyberpunk'] {
+  --color-bg: #080d17;
+  --color-surface: #0f1827;
+  --color-surface-soft: #16273d;
+  --color-text: #f9f7ff;
+  --color-muted: #9caccc;
+  --color-accent: #ff5eae;
+  --color-accent-soft: #431d4b;
+  --color-border: #294760;
+  --shadow-card: 0 12px 28px rgba(0, 0, 0, .4);
+}
