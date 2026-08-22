@@ -5,8 +5,9 @@ import { getIllustration } from '../../assets/illustrations'
 import { buildGoogleMapsSearchUrl } from '../../integrations/maps/googleMapsUrl'
 import { getPhoto } from '../lists/photoStore'
 
-function buildLineUrl(lineId: string): string {
+function buildLineUrl(lineId: string, lineAddUrl?: string): string {
   const trimmed = lineId.trim()
+  if (lineAddUrl?.trim()) return lineAddUrl.trim()
   if (/^https?:\/\//i.test(trimmed)) return trimmed
   if (trimmed.startsWith('@')) return `https://line.me/R/ti/p/${encodeURIComponent(trimmed)}`
   return 'https://line.me/R/nv/addFriends'
@@ -73,7 +74,7 @@ export function CompanionCard({ member, onEdit }: CompanionCardProps) {
         <div className="companion-contacts">
           {member.phone && <a className="companion-contact" href={`tel:${member.phone.replace(/[^+\d]/g, '')}`} aria-label={`撥打電話給 ${member.name}`}><Phone size={12} aria-hidden="true" />{member.phone}</a>}
           {member.email && <a className="companion-contact" href={`mailto:${member.email.trim()}`} aria-label={`寄信給 ${member.name}`}><Mail size={12} aria-hidden="true" />{member.email}</a>}
-          {member.lineId && <><a className="companion-contact line-open-contact" href={buildLineUrl(member.lineId)} target="_blank" rel="noopener noreferrer" aria-label={`開啟 ${member.name} 的 LINE`}><ExternalLink size={12} aria-hidden="true" />開啟 LINE</a><button className="companion-contact line-copy-contact" type="button" onClick={() => void copyLineId()} aria-label={`複製 ${member.name} 的 LINE ID`}><Copy size={12} aria-hidden="true" />{copied ? '已複製' : '複製 ID'}</button><span className="companion-contact"><MessageCircle size={12} aria-hidden="true" />{member.lineId}</span></>}
+          {member.lineId && <><a className="companion-contact line-open-contact" href={buildLineUrl(member.lineId, member.lineAddUrl)} target="_blank" rel="noopener noreferrer" aria-label={`開啟 ${member.name} 的 LINE`}><ExternalLink size={12} aria-hidden="true" />{member.lineAddUrl ? '開啟加好友頁' : '開啟 LINE'}</a><button className="companion-contact line-copy-contact" type="button" onClick={() => void copyLineId()} aria-label={`複製 ${member.name} 的 LINE ID`}><Copy size={12} aria-hidden="true" />{copied ? '已複製' : '複製 ID'}</button><span className="companion-contact"><MessageCircle size={12} aria-hidden="true" />{member.lineAddUrl ? 'LINE 加好友碼：' : ''}{member.lineId}</span></>}
           {lineQrUrl && <details className="line-qr-contact"><summary className="companion-contact"><QrCode size={12} aria-hidden="true" />顯示 QR Code</summary><img src={lineQrUrl} alt={`${member.name} 的 LINE 加好友 QR Code`} /></details>}
           {member.address && <a className="companion-contact" href={buildGoogleMapsSearchUrl(member.address)} target="_blank" rel="noopener noreferrer" aria-label={`在 Google 地圖開啟 ${member.address}`}><MapPin size={12} aria-hidden="true" />{member.address}</a>}
           {member.notes && !member.phone && !member.email && !member.lineId && !member.address && <span className="companion-contact"><StickyNote size={12} aria-hidden="true" />{member.notes}</span>}

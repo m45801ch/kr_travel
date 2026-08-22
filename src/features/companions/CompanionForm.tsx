@@ -43,17 +43,19 @@ type DetectedBarcode = { rawValue?: string }
 type BarcodeDetectorLike = { detect: (source: HTMLVideoElement) => Promise<DetectedBarcode[]> }
 type BarcodeDetectorConstructor = new (options?: { formats?: string[] }) => BarcodeDetectorLike
 
-function parseLineQrValue(value: string): string {
+type LineQrResult = { value: string; addUrl?: string }
+
+function parseLineQrValue(value: string): LineQrResult {
   const trimmed = value.trim()
   try {
     const parsed = new URL(trimmed)
     if (parsed.hostname === 'line.me') {
       const encodedId = parsed.pathname.split('/').filter(Boolean).pop()
-      if (encodedId) return decodeURIComponent(encodedId)
+      if (encodedId) return { value: decodeURIComponent(encodedId), addUrl: trimmed }
     }
-    if (parsed.protocol === 'line:' && parsed.pathname) return decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() ?? trimmed)
-  } catch { return trimmed }
-  return trimmed
+    if (parsed.protocol === 'line:' && parsed.pathname) return { value: decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() ?? trimmed), addUrl: trimmed }
+  } catch { return { value: trimmed } }
+  return { value: trimmed }
 }
 
 export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: CompanionFormProps) {
@@ -61,6 +63,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
   const [phone, setPhone] = useState(member?.phone ?? '')
   const [email, setEmail] = useState(member?.email ?? '')
   const [lineId, setLineId] = useState(member?.lineId ?? '')
+  const [lineAddUrl, setLineAddUrl] = useState(member?.lineAddUrl ?? '')
   const [lineQrPhoto, setLineQrPhoto] = useState<File>()
   const [removeLineQrPhoto, setRemoveLineQrPhoto] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
@@ -105,7 +108,9 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
         const results = await detector.detect(scannerVideoRef.current)
         const value = results[0]?.rawValue
         if (value) {
-          setLineId(parseLineQrValue(value))
+          const parsed = parseLineQrValue(value)
+          setLineId(parsed.value)
+          setLineAddUrl(parsed.addUrl ?? '')
           setScannerOpen(false)
           return
         }
@@ -156,6 +161,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,
       lineId: lineId.trim() || undefined,
+      lineAddUrl: lineAddUrl.trim() || undefined,
       lineQrPhotoId,
       address: address.trim() || undefined,
     }
@@ -204,7 +210,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
 
         <div className="form-grid">
           <label>電話<input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="例如：0912-345-678" /></label>
-          <label>LINE ID<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123 或 @官方帳號" /></label>
+          <label>LINE ID<input value={lineId} onChange={(event) => { setLineId(event.target.value); setLineAddUrl('') }} placeholder="例如：line_id123 或 @官方帳號" /></label>
         </div>
         <div className="line-friend-tools">
           <div className="line-friend-heading"><QrCode size={18} aria-hidden="true" /><strong>LINE 加好友 QR Code</strong><small>選填，可上傳 LINE 裡的 QR Code</small></div>

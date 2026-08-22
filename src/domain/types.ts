@@ -76,6 +76,7 @@ export interface Member {
   phone?: string
   email?: string
   lineId?: string
+  lineAddUrl?: string
   address?: string
 }
 
