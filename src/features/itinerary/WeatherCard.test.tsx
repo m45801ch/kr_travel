@@ -5,6 +5,27 @@ import { WeatherCard } from './WeatherCard'
 
 describe('WeatherCard', () => {
   afterEach(() => vi.restoreAllMocks())
+  it('refreshes once when the card body is clicked but ignores nested controls', async () => {
+    const user = userEvent.setup()
+    const onRefresh = vi.fn()
+
+    render(
+      <WeatherCard
+        loading={false}
+        location="首爾"
+        countryCode="KR"
+        cityQuery="Seoul"
+        onSaveLocation={vi.fn()}
+        onRefresh={onRefresh}
+      />,
+    )
+
+    await user.click(screen.getByText('等待天氣資料，選擇地點後按更新'))
+    expect(onRefresh).toHaveBeenCalledTimes(1)
+    await user.click(screen.getByRole('button', { name: '搜尋國家城市的天氣地點' }))
+    expect(onRefresh).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the location picker collapsed until opened, then saves a selected city', async () => {
     const user = userEvent.setup()
     const onSaveLocation = vi.fn()

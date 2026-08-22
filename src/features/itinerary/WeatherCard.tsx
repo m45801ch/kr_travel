@@ -1,6 +1,6 @@
-import { ChevronDown, ChevronUp, Cloud, CloudRain, Moon, RefreshCw, Search, Snowflake, Sun, Wind } from 'lucide-react'
+import { ChevronDown, ChevronUp, Cloud, CloudRain, Moon, Search, Snowflake, Sun, Wind } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, MouseEvent } from 'react'
 import type { WeatherSnapshot } from '../../domain/types'
 import { WORLD_COUNTRIES } from './worldLocations'
 
@@ -311,8 +311,13 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
   }, [currentTime, longitude, weather?.timezone])
   const narrative = weather ? weatherNarrative(weather.weatherCode) : '等待天氣資料，選擇地點後按更新'
   const advice = weatherAdvice(weather)
+  const refreshFromCard = (event: MouseEvent<HTMLElement>) => {
+    const target = event.target
+    if (target instanceof HTMLElement && target.closest('button, input, select, textarea, a, summary, label')) return
+    if (!loading) onRefresh()
+  }
 
-  return <section className={`weather-card weather-card--${theme} ${isNight ? 'weather-card--night' : ''}`}>
+  return <section className={`weather-card weather-card--${theme} ${isNight ? 'weather-card--night' : ''}`} onClick={refreshFromCard}>
     <div className="weather-hero">
       <div className="weather-hero-sky" aria-hidden="true">
         <span className="weather-sky-glow" />
@@ -328,7 +333,6 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
       <div className="weather-hero-main">
         <div className="weather-temp">
           <strong>{weather ? `${weather.temperatureMax}°` : '--°'}</strong><span>／ {weather ? `${weather.temperatureMin}°` : '--°'}</span>
-          <button type="button" className="weather-refresh" onClick={onRefresh} aria-label="更新天氣"><RefreshCw className={loading ? 'spin' : ''} size={16} /></button>
         </div>
         <p className="weather-narrative">{error ? <span className="weather-error">{error}</span> : narrative}</p>
         {weather?.isStale && <span className="weather-stale">上次更新資料</span>}

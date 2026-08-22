@@ -108,17 +108,12 @@
 .weather-rain-lines { position: absolute; inset: 0; opacity: .45; background: repeating-linear-gradient(112deg, transparent 0 26px, rgba(218,237,255,.55) 27px 29px, transparent 30px 54px); transform: translateX(18px); }
 .weather-hero-icon { position: relative; display: grid; place-items: center; flex: 0 0 68px; width: 68px; height: 68px; border-radius: 20px; background: color-mix(in srgb, white 78%, var(--hero-bg)); color: var(--hero-text); border: 1px solid color-mix(in srgb, var(--hero-text) 22%, transparent); box-shadow: 0 6px 16px rgba(123,91,78,.08); }
 .weather-card--rain .weather-hero-icon { background: #e5eff8; color: #36536b; border-color: #bfd2e3; }
-.weather-card--rain .weather-refresh { background: #e5eff8; color: #36536b; border-color: #bfd2e3; }
 .weather-card--night .weather-hero-icon { background: color-mix(in srgb, #172b46 88%, var(--hero-bg)); color: #d8edff; border-color: rgba(170,211,244,.45); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
 .weather-card--night.weather-card--rain .weather-hero-icon { background: #1d344d; color: #bfe4ff; border-color: #5a88ae; }
-.weather-card--night.weather-card--rain .weather-refresh { background: #1d344d; color: #bfe4ff; border-color: #5a88ae; }
 .weather-hero-main { position: relative; flex: 1; min-width: 0; display: grid; gap: 4px; }
 .weather-temp { display: flex; align-items: baseline; gap: 6px; line-height: 1; }
 .weather-temp strong { font-size: 2.9rem; font-weight: 900; letter-spacing: -0.06em; }
 .weather-temp span { font-size: 1.25rem; font-weight: 700; opacity: .84; }
-.weather-refresh { display: grid; place-items: center; width: 28px; height: 28px; margin-left: 6px; border: 1px solid rgba(232,223,209,.9); border-radius: 999px; color: var(--hero-text); background: #FFFEFB; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-.weather-card--night .weather-refresh { background: #FFFEFB; color: var(--hero-text); border: 1px solid rgba(232,223,209,.9); }
-.weather-card--night.weather-card--rain .weather-refresh { background: #1d344d; color: #bfe4ff; border-color: #5a88ae; }
 .weather-narrative { margin: 0; font-size: .92rem; font-weight: 700; line-height: 1.4; }
 .weather-error { color: #7A1E2E; background: rgba(255,255,255,.86); padding: 2px 8px; border-radius: 999px; font-size: .78rem; }
 .weather-hero-place { position: relative; display: grid; justify-items: end; gap: 4px; text-align: right; min-width: 0; max-width: 38%; }
@@ -535,7 +530,6 @@ a.companion-contact:hover, a.companion-contact:focus-visible { background: var(-
   .weather-temp { min-width: 0; gap: 5px; }
   .weather-temp strong { font-size: clamp(2.1rem, 10vw, 2.65rem); }
   .weather-temp span { font-size: 1rem; }
-  .weather-refresh { flex: 0 0 30px; width: 30px; height: 30px; margin-left: 3px; }
   .weather-narrative { max-width: 100%; font-size: .78rem; line-height: 1.35; overflow-wrap: anywhere; }
   .weather-hero-place { grid-area: place; display: flex; align-items: baseline; justify-content: flex-start; flex-wrap: wrap; gap: 4px 9px; max-width: none; min-width: 0; padding-top: 9px; border-top: 1px solid color-mix(in srgb, var(--hero-text) 18%, transparent); text-align: left; }
   .weather-location-large { max-width: 100%; font-size: 1.25rem; }
@@ -762,8 +756,6 @@ a.companion-contact:hover, a.companion-contact:focus-visible { background: var(-
 :root[data-app-theme='cyberpunk'] .weather-location-editor label { color: #e8f2fb; }
 :root[data-app-theme='cyberpunk'] .weather-location-editor { border-color: #31516a; }
 :root[data-app-theme='cyberpunk'] .weather-hero-icon,
-:root[data-app-theme='cyberpunk'] .weather-refresh { border-color: color-mix(in srgb, var(--hero-text) 32%, #31516a); color: var(--hero-text); background: color-mix(in srgb, #141f31 82%, var(--hero-bg)); box-shadow: 0 0 10px rgba(61, 229, 208, .12); }
-:root[data-app-theme='cyberpunk'] .weather-card--rain .weather-refresh { border-color: #5a88ae; color: #bfe4ff; background: #1d344d; }
 :root[data-app-theme='cyberpunk'] .day-illustration,
 :root[data-app-theme='cyberpunk'] .activity-mark { color: #3de5d0; background: #3c1e43; box-shadow: 0 0 12px rgba(255, 79, 154, .18); }
 :root[data-app-theme='cyberpunk'] .empty-activities { border-color: #31516a; color: #9fb4ce; }
