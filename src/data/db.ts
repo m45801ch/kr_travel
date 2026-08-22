@@ -22,6 +22,8 @@ export class TravelDatabase extends Dexie {
   weatherCache!: Table<WeatherCache, string>
   settings!: Table<Settings, string>
   photos!: Table<{ id: string; blob: Blob }, string>
+  illustrationOverrides!: Table<{ id: string; label?: string; category?: string; fontFamily?: string }, string>
+  categoryConfigs!: Table<{ category: string; fontFamily?: string; label?: string }, string>
 
   constructor(name = 'korea-travel') {
     super(name)
@@ -37,6 +39,7 @@ export class TravelDatabase extends Dexie {
       settings: 'id',
     })
     this.version(2).stores({ photos: 'id' })
+    this.version(3).stores({ illustrationOverrides: 'id', categoryConfigs: 'category' })
   }
 }
 
