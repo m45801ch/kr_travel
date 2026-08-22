@@ -48,7 +48,8 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
     const value = Number(amount)
     const rate = Number(conversionRate)
     if (!Number.isFinite(value) || value < 0 || !Number.isFinite(rate) || rate < 0) return ''
-    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: conversionCurrency, maximumFractionDigits: 2 }).format(value * rate)
+    const digits = getCurrencyFractionDigits(conversionCurrency)
+    return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: conversionCurrency, minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value * rate)
   }, [amount, conversionCurrency, conversionRate])
 
   const loadCurrencies = useCallback(async () => {

@@ -93,6 +93,7 @@ export interface ListItem {
   name: string
   category: string
   photoId?: string
+  photoIds?: string[]
   note: string
   priority: 'normal' | 'important'
   location: string
