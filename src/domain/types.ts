@@ -155,4 +155,7 @@ export interface Settings {
   darkMode: boolean
   effects: boolean
   defaultCurrency: Currency
+  mapProvider?: MapProvider
 }
+
+export type MapProvider = 'google' | 'naver'

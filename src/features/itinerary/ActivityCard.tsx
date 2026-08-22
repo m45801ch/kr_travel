@@ -1,9 +1,17 @@
 import { Map } from 'lucide-react'
 import type { Activity } from '../../domain/types'
 import { getIllustration } from '../../assets/illustrations'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../../data/db'
+import { buildMapSearchUrl } from '../../integrations/maps/mapUrls'
 
 export function ActivityCard({ activity, onEdit }: { activity: Activity; onEdit: (id: string) => void }) {
   const illustration = getIllustration(activity.illustrationId)
+  const settings = useLiveQuery(() => db.settings.get('global'), [], undefined)
+  const mapProvider = settings?.mapProvider ?? 'google'
+  const mapQuery = activity.address || activity.locationName || activity.title
+  const mapLabel = mapProvider === 'naver' ? 'Naver Map' : 'Google Maps'
+  const mapUrl = mapProvider === 'naver' ? buildMapSearchUrl(mapQuery, 'naver') : (activity.googleMapsUrl || buildMapSearchUrl(mapQuery, 'google'))
   return <article className="activity-card">
     <button className="activity-card-main" type="button" aria-label={`編輯行程 ${activity.title}`} onClick={() => onEdit(activity.id)}>
       <div className="activity-time">{activity.time || '待定'}</div>
@@ -11,7 +19,7 @@ export function ActivityCard({ activity, onEdit }: { activity: Activity; onEdit:
       <div className="activity-info"><strong>{activity.title}</strong><span>{activity.locationName || activity.type}</span>{activity.notes && <small>{activity.notes}</small>}</div>
     </button>
     <div className="activity-actions">
-      <a href={activity.googleMapsUrl} target="_blank" rel="noreferrer" aria-label={`在 Google Maps 開啟 ${activity.title}`}><Map size={18} /></a>
+      <a href={mapUrl} target="_blank" rel="noreferrer" aria-label={`在 ${mapLabel} 開啟 ${activity.title}`}><Map size={18} /></a>
     </div>
   </article>
 }
