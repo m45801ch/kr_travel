@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { GripVertical, Pencil, Check, X } from 'lucide-react'
+import { ChevronDown, GripVertical, Pencil, Check, X } from 'lucide-react'
 import { db } from '../../data/db'
 import { illustrationCatalog as staticCatalog, illustrationCategories, type IllustrationCategory } from '../../assets/illustrations'
 import { mergeCatalog, upsertCategoryConfig, upsertIllustrationOverride } from './illustrationStore'
@@ -94,9 +94,13 @@ export function IllustrationManager() {
   }
 
   return (
-    <section className="settings-card illustration-manager">
-      <h2>圖案分類管理</h2>
-      <p>拖曳卡片可移動至其他分類，點擊名稱可改名，分類標題可改字型與名稱（修正分類錯誤）</p>
+    <details className="settings-card illustration-manager">
+      <summary className="illustration-manager-summary">
+        <span><strong>圖案分類管理</strong><small>調整分類、名稱與圖案排序</small></span>
+        <ChevronDown size={20} aria-hidden="true" />
+      </summary>
+      <div className="illustration-manager-content">
+        <p>拖曳卡片可移動至其他分類，點擊名稱可改名，分類標題可改字型與名稱（修正分類錯誤）</p>
 
       {Array.from(grouped.entries()).map(([category, items]) => {
         const config = categoryMap[category]
@@ -160,6 +164,7 @@ export function IllustrationManager() {
           </div>
         )
       })}
-    </section>
+      </div>
+    </details>
   )
 }

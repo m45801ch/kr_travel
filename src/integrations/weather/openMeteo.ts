@@ -186,7 +186,7 @@ export async function getForecast(latitude: number, longitude: number, date: str
     throw error instanceof Error ? error : new Error('無法取得天氣資料，請稍後再試。')
   }
   try {
-    const data = (await response!.json()) as { daily: { temperature_2m_max: number[]; temperature_2m_min: number[]; weather_code: number[] } }
+    const data = (await response!.json()) as { timezone?: string; daily: { temperature_2m_max: number[]; temperature_2m_min: number[]; weather_code: number[] } }
     const code = data.daily.weather_code[0] ?? 3
     return {
       date,
@@ -195,6 +195,7 @@ export async function getForecast(latitude: number, longitude: number, date: str
       weatherCode: code,
       description: weatherDescription(code),
       locationName,
+      timezone: data.timezone,
     }
   } catch {
     const fallback = await fetchForecastFallback(latitude, longitude, date, locationName)

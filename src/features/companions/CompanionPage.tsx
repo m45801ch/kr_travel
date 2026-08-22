@@ -61,9 +61,6 @@ export function CompanionPage() {
           <h1>旅伴</h1>
           <p>把一起出發的人放在這裡</p>
         </div>
-        <button className="header-add-button" type="button" onClick={openAddForm}>
-          <Plus size={20} aria-hidden="true" />新增
-        </button>
       </header>
 
       <section className="companion-summary" aria-label="旅伴統計">
@@ -73,6 +70,9 @@ export function CompanionPage() {
           <span>一起規劃這趟旅程</span>
         </div>
         <span className="companion-summary-trip">{trip.title}</span>
+        <button className="header-add-button companion-summary-add" type="button" onClick={openAddForm}>
+          <Plus size={18} aria-hidden="true" />新增
+        </button>
       </section>
 
       <div className="companion-list">

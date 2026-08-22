@@ -13,7 +13,7 @@ describe('app themes', () => {
     applyTheme({ themeId: 'cyberpunk', themeColor: '#3de5d0', fontScale: 1.1, darkMode: true })
 
     expect(document.documentElement.dataset.appTheme).toBe('cyberpunk')
-    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(document.documentElement.dataset.theme).toBe('light')
     expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('#3de5d0')
     expect(document.documentElement.style.fontSize).toBe('1.1rem')
   })

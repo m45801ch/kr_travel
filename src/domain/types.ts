@@ -1,6 +1,18 @@
 export type Currency = string
 export type ListType = 'shopping' | 'prep'
 export type SplitMode = 'equal' | 'custom'
+export type PaymentMethod =
+  | 'cash'
+  | 'credit-card'
+  | 'debit-card'
+  | 'google-pay'
+  | 'apple-pay'
+  | 'samsung-pay'
+  | 'line-pay'
+  | 'bank-transfer'
+  | 'transit-card'
+  | 'qr-pay'
+  | 'other'
 export type ActivityType = 'spot' | 'food' | 'transit' | 'stay' | 'other'
 export type IllustrationId = string
 export type AppThemeId = 'classic' | 'forest' | 'storybook' | 'cyberpunk'
@@ -32,6 +44,7 @@ export interface TripDay {
   summary: string
   accommodation: string
   illustrationId: IllustrationId
+  photoId?: string
 }
 
 export interface Activity {
@@ -58,6 +71,7 @@ export interface Member {
   color: string
   illustrationId: IllustrationId
   photoId?: string
+  lineQrPhotoId?: string
   notes: string
   phone?: string
   email?: string
@@ -78,6 +92,7 @@ export interface Expense {
   convertedAmountMinor?: number
   category: string
   payerId: string
+  paymentMethod?: PaymentMethod
   splitMode: SplitMode
   notes: string
 }
@@ -117,6 +132,7 @@ export interface WeatherSnapshot {
   weatherCode: number
   description: string
   locationName: string
+  timezone?: string
   feelsLike?: number
 }
 

@@ -31,7 +31,11 @@ export class TripRepository {
 
   async listActivities(dayId: string): Promise<Activity[]> {
     const activities = await this.database.activities.where('dayId').equals(dayId).toArray()
-    return activities.sort((a, b) => a.order - b.order || a.time.localeCompare(b.time))
+    return activities.sort((a, b) => {
+      const timeA = a.time || '99:99'
+      const timeB = b.time || '99:99'
+      return timeA.localeCompare(timeB) || a.order - b.order
+    })
   }
 
   async saveActivity(activity: Activity): Promise<void> {

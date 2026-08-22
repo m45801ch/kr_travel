@@ -70,14 +70,29 @@ describe('ExpenseForm', () => {
       conversionRate: 35,
       convertedAmountMinor: 350,
       baseAmountMinor: 350,
+      paymentMethod: 'cash',
     })
     expect(splits).toHaveLength(2)
+  })
+
+  it('saves the selected payment method', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', mockFrankfurter())
+    const onSave = vi.fn<(expense: Expense, splits: ExpenseSplit[]) => void>()
+
+    render(<ExpenseForm tripId="trip-1" baseCurrency="TWD" members={members} onSave={onSave} onCancel={vi.fn()} />)
+    await user.type(screen.getByLabelText('金額'), '10')
+    await user.selectOptions(screen.getByLabelText('付款方式'), 'google-pay')
+    await user.click(screen.getByRole('button', { name: '儲存支出' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
+    expect(onSave.mock.calls[0][0]).toMatchObject({ paymentMethod: 'google-pay' })
   })
 
   it('uses an existing record to initialise the edit form', () => {
     vi.stubGlobal('fetch', mockFrankfurter())
     const initial: Expense = {
-      id: 'expense-1', tripId: 'trip-1', date: '2026-08-21', amountMinor: 1200, currency: 'JPY', exchangeRateToBase: 0.22, baseAmountMinor: 264, conversionCurrency: 'TWD', conversionRate: 0.22, convertedAmountMinor: 264, category: '交通', payerId: 'me', splitMode: 'equal', notes: '機場快線',
+      id: 'expense-1', tripId: 'trip-1', date: '2026-08-21', amountMinor: 1200, currency: 'JPY', exchangeRateToBase: 0.22, baseAmountMinor: 264, conversionCurrency: 'TWD', conversionRate: 0.22, convertedAmountMinor: 264, category: '交通', payerId: 'me', paymentMethod: 'apple-pay', splitMode: 'equal', notes: '機場快線',
     }
 
     render(<ExpenseForm tripId="trip-1" baseCurrency="TWD" members={members} initial={initial} onSave={vi.fn()} onCancel={vi.fn()} />)
@@ -85,6 +100,7 @@ describe('ExpenseForm', () => {
     expect(screen.getByRole('heading', { name: '編輯支出' })).toBeInTheDocument()
     expect(screen.getByDisplayValue('1200')).toBeInTheDocument()
     expect(screen.getByDisplayValue('機場快線')).toBeInTheDocument()
+    expect(screen.getByLabelText('付款方式')).toHaveValue('apple-pay')
     expect(screen.getByRole('button', { name: '儲存修改' })).toBeInTheDocument()
   })
 })

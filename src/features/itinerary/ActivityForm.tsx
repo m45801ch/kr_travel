@@ -11,7 +11,7 @@ export function ActivityForm({ tripId, dayId, date, initial, onSave, onDelete, o
   const [locationName, setLocationName] = useState(initial?.locationName ?? '')
   const [address, setAddress] = useState(initial?.address ?? '')
   const [notes, setNotes] = useState(initial?.notes ?? '')
-  const [illustrationId, setIllustrationId] = useState(initial?.illustrationId ?? 'hanbok-woman')
+  const [illustrationId, setIllustrationId] = useState(initial?.illustrationId ?? 'namsan-tower')
   const isEditing = Boolean(initial)
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {

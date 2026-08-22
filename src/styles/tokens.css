@@ -96,6 +96,59 @@
   --shadow-card: 0 12px 28px rgba(0, 0, 0, .4);
 }
 
+/* Semantic surfaces keep list cards, priority badges, and navigation in theme. */
+:root {
+  --important-surface: #fff0f1;
+  --important-border: #f0a4aa;
+  --important-photo: #ffe0e3;
+  --important-label-bg: #ffd8dc;
+  --important-label-text: #a3222c;
+  --nav-surface: rgba(255, 252, 244, .94);
+  --nav-border: rgba(238, 163, 167, .45);
+  --progress-track: #f6e9dc;
+  --neutral-tag-bg: #fff3d9;
+  --neutral-tag-text: #a28666;
+}
+
+:root[data-app-theme='forest'] {
+  --important-surface: #eef8e6;
+  --important-border: #93c38c;
+  --important-photo: #dcefd6;
+  --important-label-bg: #cfe9c9;
+  --important-label-text: #2f754d;
+  --nav-surface: rgba(245, 252, 239, .95);
+  --nav-border: rgba(112, 169, 112, .4);
+  --progress-track: #dcefd6;
+  --neutral-tag-bg: #edf5e5;
+  --neutral-tag-text: #64805d;
+}
+
+:root[data-app-theme='storybook'] {
+  --important-surface: #e8f6ff;
+  --important-border: #8fcbe9;
+  --important-photo: #d7efff;
+  --important-label-bg: #cbeaff;
+  --important-label-text: #256a94;
+  --nav-surface: rgba(248, 253, 255, .96);
+  --nav-border: rgba(117, 183, 220, .44);
+  --progress-track: #d9efff;
+  --neutral-tag-bg: #eef9ff;
+  --neutral-tag-text: #5d87a1;
+}
+
+:root[data-app-theme='cyberpunk'] {
+  --important-surface: #25172f;
+  --important-border: #ff4f9a;
+  --important-photo: #372047;
+  --important-label-bg: #4a1e4f;
+  --important-label-text: #ff9bc7;
+  --nav-surface: rgba(12, 21, 35, .94);
+  --nav-border: rgba(61, 229, 208, .44);
+  --progress-track: #24384c;
+  --neutral-tag-bg: #1f3348;
+  --neutral-tag-text: #b7c9df;
+}
+
 /* Theme-aware budget hero colors. */
 :root {
   --budget-gradient: linear-gradient(145deg, #f58e99, #ed7787);

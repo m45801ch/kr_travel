@@ -16,7 +16,7 @@ export function AppShell() {
 
   return (
     <main className="app-shell">
-      {settings?.effects && <SakuraEffect />}
+      {settings?.effects && <SakuraEffect key="sakura-effect" />}
       <div className="app-content"><Outlet /></div>
       <BottomNav />
     </main>

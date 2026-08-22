@@ -1,4 +1,4 @@
-import { CalendarDays, Plus, Sparkles } from 'lucide-react'
+import { CalendarDays, Plus } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Activity, Trip, TripDay, WeatherSnapshot } from '../../domain/types'
 import { TripRepository } from '../../data/repositories/tripRepository'
@@ -9,6 +9,9 @@ import { WeatherCard } from './WeatherCard'
 import { getCachedOrFetchWeather } from '../../integrations/weather/weatherRepository'
 import { addDays, isIsoDate } from './dateUtils'
 import { ThemeHeaderArt } from '../../components/ThemeHeaderArt'
+import { IllustrationPicker } from '../../components/IllustrationPicker'
+import { compressPhoto, deletePhoto, getPhoto, savePhoto } from '../lists/photoStore'
+import { getIllustration } from '../../assets/illustrations'
 
 const repository = new TripRepository()
 const starterTrip: Trip = { id: 'trip-seoul-demo', title: '首爾小旅行', destination: '首爾', startDate: '2026-08-25', endDate: '2026-08-29', baseCurrency: 'TWD', budgetMinor: 5000000, illustrationId: 'hanbok-woman', themeColor: '#ef8490', active: true }
@@ -40,6 +43,9 @@ export function ItineraryPage() {
   const [startDateDraft, setStartDateDraft] = useState('')
   const [endDateDraft, setEndDateDraft] = useState('')
   const [dayTitleDraft, setDayTitleDraft] = useState('')
+  const [dayIllustrationDraft, setDayIllustrationDraft] = useState('hanbok-woman')
+  const [dayPhotoIdDraft, setDayPhotoIdDraft] = useState<string>()
+  const [dayPhotoPreviewUrl, setDayPhotoPreviewUrl] = useState<string>()
   const visibleDays = useMemo(() => {
     if (!editingDates || !trip || !isIsoDate(startDateDraft) || !isIsoDate(endDateDraft)) return days
     if (new Date(`${endDateDraft}T00:00:00`) < new Date(`${startDateDraft}T00:00:00`)) return days
@@ -51,6 +57,25 @@ export function ItineraryPage() {
   }, [days, editingDates, endDateDraft, startDateDraft, trip])
   const visibleSelectedDate = useMemo(() => visibleDays.some((day) => day.date === selectedDate) ? selectedDate : (visibleDays[0]?.date ?? selectedDate), [selectedDate, visibleDays])
   const selectedDay = useMemo(() => visibleDays.find((day) => day.date === visibleSelectedDate), [visibleDays, visibleSelectedDate])
+  const dayIllustration = selectedDay ? getIllustration(selectedDay.illustrationId) : getIllustration('hanbok-woman')
+
+  useEffect(() => {
+    let cancelled = false
+    let objectUrl: string | undefined
+    if (!selectedDay?.photoId) {
+      setDayPhotoPreviewUrl(undefined)
+      return
+    }
+    void getPhoto(selectedDay.photoId).then((blob) => {
+      if (!blob || cancelled) return
+      objectUrl = URL.createObjectURL(blob)
+      setDayPhotoPreviewUrl(objectUrl)
+    })
+    return () => {
+      cancelled = true
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [selectedDay?.photoId])
 
   const loadWeather = useCallback(async (currentTrip: Trip, date: string, destination: string, coords?: { latitude: number; longitude: number }) => {
     setWeatherLoading(true)
@@ -142,10 +167,33 @@ export function ItineraryPage() {
     setTrip(next); setDays(refreshed); setSelectedDate(refreshed[0]?.date ?? start); setEditingDates(false)
   }
 
-  const startEditDay = (day: TripDay) => { setDayTitleDraft(day.title); setEditingDay(day) }
+  const startEditDay = (day: TripDay) => {
+    setDayTitleDraft(day.title)
+    setDayIllustrationDraft(day.illustrationId)
+    setDayPhotoIdDraft(day.photoId)
+    setDayPhotoPreviewUrl(undefined)
+    setEditingDay(day)
+  }
+  const uploadDayPhoto = async (file: File) => {
+    if (!editingDay) return
+    const blob = await compressPhoto(file)
+    const id = `${editingDay.id}-photo-${crypto.randomUUID()}`
+    await savePhoto(id, blob)
+    if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay.photoId) await deletePhoto(dayPhotoIdDraft)
+    if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl)
+    setDayPhotoIdDraft(id)
+    setDayPhotoPreviewUrl(URL.createObjectURL(blob))
+  }
+  const cancelDayEdit = () => {
+    if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay?.photoId) void deletePhoto(dayPhotoIdDraft)
+    if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl)
+    setEditingDay(undefined)
+  }
   const saveDayTitle = async () => {
     if (!editingDay) return
-    const next = { ...editingDay, title: dayTitleDraft.trim() || editingDay.title }
+    const next = { ...editingDay, title: dayTitleDraft.trim() || editingDay.title, illustrationId: dayIllustrationDraft, photoId: dayPhotoIdDraft }
+    if (editingDay.photoId && editingDay.photoId !== next.photoId) await deletePhoto(editingDay.photoId)
+    if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl)
     await repository.saveDay(next)
     setDays((current) => current.map((day) => (day.id === next.id ? next : day)))
     setEditingDay(undefined)
@@ -170,18 +218,17 @@ export function ItineraryPage() {
             </div>
           : <p className="editable-date" role="button" tabIndex={0} onClick={startEditDates} onKeyDown={(event) => { if (event.key === 'Enter') startEditDates() }} aria-label="點擊修改行程日期"><CalendarDays size={15} aria-hidden="true" />{trip.startDate} — {trip.endDate}</p>}
       </div>
-      <button className="header-icon-button" type="button" aria-label="旅程裝扮"><Sparkles size={21} /></button>
     </header>
     <DateStrip days={visibleDays} selectedDate={visibleSelectedDate} onSelect={setSelectedDate} />
     <WeatherCard key={selectedDay.id} weather={weather} error={weatherError} loading={weatherLoading} location={selectedWeatherLocation} countryCode={selectedDay.weatherCountryCode} cityQuery={selectedDay.weatherCityQuery} latitude={selectedDay.weatherLatitude} longitude={selectedDay.weatherLongitude} onSaveLocation={(selection) => void saveWeatherLocation(selection)} onRefresh={() => void loadWeather(trip, selectedDay.date, selectedWeatherQuery, selectedWeatherCoords)} />
     <section className="day-card">
       <div className="day-card-heading">
         {editingDay && editingDay.id === selectedDay.id
-          ? <div className="day-title-edit"><input className="inline-edit-input" value={dayTitleDraft} onChange={(event) => setDayTitleDraft(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void saveDayTitle(); if (event.key === 'Escape') setEditingDay(undefined) }} autoFocus onBlur={() => void saveDayTitle()} aria-label="本日標題" /><button type="button" className="inline-edit-ok" onClick={() => void saveDayTitle()}>完成</button></div>
+          ? <div className="day-title-edit"><input className="inline-edit-input" value={dayTitleDraft} onChange={(event) => setDayTitleDraft(event.target.value)} aria-label="本日標題" /><IllustrationPicker value={dayIllustrationDraft} onChange={setDayIllustrationDraft} showLabel={false} /><label className="day-photo-upload">上傳本日照片<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadDayPhoto(file); event.currentTarget.value = '' }} /></label>{dayPhotoPreviewUrl && <div className="day-photo-preview"><img src={dayPhotoPreviewUrl} alt="本日照片預覽" /><button type="button" className="button-secondary compact" onClick={() => { if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay.photoId) void deletePhoto(dayPhotoIdDraft); if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl); setDayPhotoIdDraft(undefined); setDayPhotoPreviewUrl(undefined) }}>移除照片</button></div>}<div className="day-edit-actions"><button type="button" className="button-secondary compact" onClick={cancelDayEdit}>取消</button><button type="button" className="button-primary compact" onClick={() => void saveDayTitle()}>完成</button></div></div>
           : <div className="editable" role="button" tabIndex={0} onClick={() => startEditDay(selectedDay)} onKeyDown={(event) => { if (event.key === 'Enter') startEditDay(selectedDay) }} aria-label="點擊編輯本日標題">
               <div><span className="day-kicker">{new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })}</span><h2>{selectedDay.title}</h2><p>{selectedDay.summary}</p></div>
             </div>}
-        <span className="day-illustration" aria-hidden="true">{selectedDay.illustrationId === 'korean-house' ? '🏠' : '👘'}</span>
+        <div className="day-card-heading-actions"><button className="day-illustration-button" type="button" aria-label="編輯本日圖案與照片" title="編輯本日圖案與照片" onClick={() => startEditDay(selectedDay)}><span className="day-illustration" aria-hidden="true">{dayPhotoPreviewUrl ? <img src={dayPhotoPreviewUrl} alt="" /> : dayIllustration.imageUrl ? <img src={dayIllustration.imageUrl} alt="" /> : dayIllustration.emoji}</span></button></div>
       </div>
       <div className="activity-list">{activities.length ? activities.map((activity) => <ActivityCard key={activity.id} activity={activity} onEdit={(id) => void (async () => { const found = activities.find((a) => a.id === id); if (found) { setEditingActivity(found); setShowForm(true) } })()} />) : <div className="empty-activities">今天還沒有安排,從一個喜歡的地方開始吧。</div>}</div>
       <button className="add-activity-button" type="button" onClick={() => { setEditingActivity(undefined); setShowForm(true) }}><Plus size={18} />新增活動</button>

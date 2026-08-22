@@ -1,4 +1,4 @@
-import { Plus, Settings2 } from 'lucide-react'
+﻿import { Plus, Settings2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { currencyLabel, getCurrencyFractionDigits } from '../../domain/currency'
 import type { Currency, Expense, ExpenseSplit, Member } from '../../domain/types'
@@ -18,6 +18,8 @@ import attractionIcon from '../../assets/expense-icons/attraction-tile.png'
 import otherIcon from '../../assets/expense-icons/other-tile.png'
 import customIcon from '../../assets/expense-icons/custom-tile.svg'
 import { ThemeHeaderArt } from '../../components/ThemeHeaderArt'
+import { getPaymentMethodLabel, normalizePaymentMethod, paymentMethodOptions } from './paymentMethods'
+import { PaymentMethodSummary, type PaymentMethodFilter } from './PaymentMethodSummary'
 
 const tripRepository = new TripRepository()
 const expenseRepository = new ExpenseRepository()
@@ -41,6 +43,7 @@ export function ExpensePage() {
   const [showForm, setShowForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense>()
   const [category, setCategory] = useState('全部')
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethodFilter>('all')
   const [editingBudget, setEditingBudget] = useState(false)
   const [budgetDraft, setBudgetDraft] = useState('')
 
@@ -63,7 +66,18 @@ export function ExpensePage() {
   }, [])
   const format = (amount: number) => formatCurrency(amount, trip?.baseCurrency ?? 'TWD')
   const spent = expenses.reduce((sum, expense) => sum + expense.baseAmountMinor, 0)
-  const visibleExpenses = useMemo(() => category === '全部' ? expenses : expenses.filter((expense) => expense.category === category), [category, expenses])
+  const filterOptions = useMemo(() => {
+    const base = ['美食', '交通', '住宿', '購物', '景點', '其他', '自定']
+    const custom = Array.from(new Set(expenses.map((e) => e.category).filter((c) => !base.includes(c) && c !== '全部')))
+    return ['全部', ...base, ...custom]
+  }, [expenses])
+  const activeCategory = filterOptions.includes(category) ? category : '全部'
+  const categoryExpenses = useMemo(() => activeCategory === '全部' ? expenses : expenses.filter((expense) => expense.category === activeCategory), [activeCategory, expenses])
+  const visibleExpenses = useMemo(() => {
+    if (paymentMethodFilter === 'all') return categoryExpenses
+    if (paymentMethodFilter === 'unset') return categoryExpenses.filter((expense) => !expense.paymentMethod)
+    return categoryExpenses.filter((expense) => expense.paymentMethod && normalizePaymentMethod(expense.paymentMethod) === paymentMethodFilter)
+  }, [categoryExpenses, paymentMethodFilter])
   const settlements = calculateSettlement(expenses, members, splits)
 
   const startEditBudget = () => {
@@ -110,7 +124,12 @@ export function ExpensePage() {
 
   if (!trip) return <section className="page-preview"><p>請先建立旅程。</p></section>
     return <section className="expenses-page"><header className="page-header themed-header themed-header-expenses"><ThemeHeaderArt kind="budget" /><div>
-<p className="eyebrow">TRAVEL BUDGET</p><h1>旅行記帳</h1><p>追蹤支出與旅程預算</p></div><button className="header-icon-button" type="button" aria-label="匯率設定"><Settings2 size={20} /></button></header><BudgetCard budget={trip.budgetMinor} spent={spent} format={format} onClick={startEditBudget} />{editingBudget && <div className="budget-edit"><label>總預算<input value={budgetDraft} onChange={(e) => setBudgetDraft(e.target.value)} inputMode="decimal" placeholder="輸入金額" aria-label="總預算" /></label><div className="budget-edit-actions"><button className="button-primary" type="button" onClick={() => void saveBudget()}>儲存</button><button className="button-secondary" type="button" onClick={() => setEditingBudget(false)}>取消</button></div></div>}<div className="expense-toolbar"><select value={category} onChange={(event) => setCategory(event.target.value)}><option>全部</option><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option><option>自定</option></select><button className="button-primary compact" type="button" onClick={startNewExpense}><Plus size={18} />新增支出</button></div><div className="expense-list">{visibleExpenses.length ? visibleExpenses.map((expense) => <button className="expense-row" type="button" key={expense.id} onClick={() => startEditingExpense(expense)} aria-label={`編輯${expense.category}支出`}><div className="expense-category"><img src={expenseCategoryIcons[expense.category] ?? otherIcon} alt={`${expense.category}類別圖示`} /></div><div><strong>{expense.category}</strong><span>{expenseSummary(expense)}</span></div><b>{format(expense.baseAmountMinor)}</b></button>) : <div className="empty-activities">還沒有支出紀錄，先記下一筆旅費吧。</div>}</div><SettlementSummary settlements={settlements} members={members} format={format} />{showForm && <ExpenseForm tripId={trip.id} baseCurrency={trip.baseCurrency} members={members} initial={editingExpense} initialSplits={editingExpense ? splits.filter((split) => split.expenseId === editingExpense.id) : []} onSave={(expense, expenseSplits) => { void saveExpense(expense, expenseSplits) }} onDelete={(expense) => { void deleteExpense(expense) }} onCancel={() => { setShowForm(false); setEditingExpense(undefined) }} />}</section>
+<p className="eyebrow">TRAVEL BUDGET</p><h1>旅行記帳</h1><p>追蹤支出與旅程預算</p></div><button className="header-icon-button" type="button" aria-label="匯率設定"><Settings2 size={20} /></button></header><BudgetCard budget={trip.budgetMinor} spent={spent} format={format} onClick={startEditBudget} />{editingBudget && <div className="budget-edit"><label>總預算<input value={budgetDraft} onChange={(e) => setBudgetDraft(e.target.value)} inputMode="decimal" placeholder="輸入金額" aria-label="總預算" /></label><div className="budget-edit-actions"><button className="button-primary" type="button" onClick={() => void saveBudget()}>儲存</button><button className="button-secondary" type="button" onClick={() => setEditingBudget(false)}>取消</button></div></div>}<div className="expense-toolbar"><div className="expense-filters"><select aria-label="依類別篩選" value={activeCategory} onChange={(event) => setCategory(event.target.value)}>{filterOptions.map((opt) => <option key={opt}>{opt}</option>)}</select><select aria-label="依付款方式篩選" value={paymentMethodFilter} onChange={(event) => setPaymentMethodFilter(toPaymentMethodFilter(event.target.value))}><option value="all">全部付款方式</option><option value="unset">未設定</option>{paymentMethodOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></div><button className="button-primary compact" type="button" onClick={startNewExpense}><Plus size={18} />新增支出</button></div><PaymentMethodSummary expenses={categoryExpenses} scopeLabel={activeCategory === '全部' ? '全部類別' : activeCategory} selectedFilter={paymentMethodFilter} format={format} onSelectFilter={setPaymentMethodFilter} /><div className="expense-list">{visibleExpenses.length ? visibleExpenses.map((expense) => <button className="expense-row" type="button" key={expense.id} onClick={() => startEditingExpense(expense)} aria-label={`編輯${expense.category}支出`}><div className="expense-category"><img src={expenseCategoryIcons[expense.category] ?? customIcon} alt={`${expense.category}類別圖示`} /></div><div><strong>{expense.category}</strong><span>{expenseSummary(expense)}</span>{expense.paymentMethod && <small className="expense-payment">付款：{getPaymentMethodLabel(expense.paymentMethod)}</small>}</div><b>{format(expense.baseAmountMinor)}</b></button>) : <div className="empty-activities">{expenses.length ? '目前的篩選條件沒有符合的支出。' : '還沒有支出紀錄，先記下一筆旅費吧。'}</div>}</div><SettlementSummary settlements={settlements} members={members} format={format} />{showForm && <ExpenseForm tripId={trip.id} baseCurrency={trip.baseCurrency} members={members} initial={editingExpense} initialSplits={editingExpense ? splits.filter((split) => split.expenseId === editingExpense.id) : []} onSave={(expense, expenseSplits) => { void saveExpense(expense, expenseSplits) }} onDelete={(expense) => { void deleteExpense(expense) }} onCancel={() => { setShowForm(false); setEditingExpense(undefined) }} />}</section>
+}
+
+function toPaymentMethodFilter(value: string): PaymentMethodFilter {
+  if (value === 'all' || value === 'unset') return value
+  return normalizePaymentMethod(value)
 }
 
 function formatCurrency(amountMinor: number, currency: Currency): string {

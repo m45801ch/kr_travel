@@ -1,34 +1,44 @@
-import { ChevronDown, ChevronUp, Cloud, CloudRain, Moon, RefreshCw, Search, Sun, Wind } from 'lucide-react'
+import { ChevronDown, ChevronUp, Cloud, CloudRain, Moon, RefreshCw, Search, Snowflake, Sun, Wind } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { WeatherSnapshot } from '../../domain/types'
 import { WORLD_COUNTRIES } from './worldLocations'
 
+function isSnowCode(code: number): boolean {
+  return (code >= 71 && code <= 77) || (code >= 85 && code <= 86)
+}
+
+function isRainCode(code: number): boolean {
+  return (code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95
+}
+
 function WeatherIcon({ code, size = 34, isNight = false }: { code: number; size?: number; isNight?: boolean }) {
-  if (code >= 51) return <CloudRain aria-hidden="true" size={size} />
+  if (isSnowCode(code)) return <Snowflake aria-hidden="true" size={size} />
+  if (isRainCode(code)) return <CloudRain aria-hidden="true" size={size} />
   if (code === 0 || code === 1) return isNight ? <Moon aria-hidden="true" size={size} /> : <Sun aria-hidden="true" size={size} />
   if (code === 45 || code === 48) return <Wind aria-hidden="true" size={size} />
   return <Cloud aria-hidden="true" size={size} />
 }
 
 function weatherTheme(code: number): 'sun' | 'cloud' | 'rain' | 'snow' | 'fog' {
-  if (code >= 71) return 'snow'
-  if (code >= 51) return 'rain'
+  if (isSnowCode(code)) return 'snow'
+  if (isRainCode(code)) return 'rain'
   if (code === 0 || code === 1) return 'sun'
   if (code === 45 || code === 48) return 'fog'
   return 'cloud'
 }
 
-function weatherNarrative(code: number, maxTemp?: number): string {
-  if (code >= 71 && maxTemp != null && maxTemp > 10) return '多雲時晴，適合城市漫步'
+function weatherNarrative(code: number): string {
   if (code === 0) return '晴朗無雲，適合戶外散步與拍照'
   if (code === 1) return '大致晴朗，午後可能轉多雲'
   if (code === 45 || code === 48) return '薄霧瀰漫，能見度較低'
-  if (code >= 51 && code <= 55) return '細雨綿綿，路面微濕'
-  if (code >= 61 && code <= 65) return '降雨機率高，外出留意'
-  if (code >= 71) return '低溫有雪，留意保暖與路況'
-  if (code >= 80) return '短暫陣雨，建議備雨具'
-  if (code === 95) return '可能有雷雨，避免空曠地區久留'
+  if (code >= 95) return '雷雨發展中，請避開空曠地區並留意雷聲'
+  if (code >= 80 && code <= 82) return '短暫陣雨，出門記得攜帶雨具'
+  if (isSnowCode(code)) return '低溫有雪，留意保暖與路況'
+  if (code >= 66) return '冰雨或雨夾雪，請留意路面濕滑'
+  if (code >= 61) return '降雨持續，外出記得攜帶雨具'
+  if (code >= 56) return '凍雨或霧雨，路面可能濕滑'
+  if (code >= 51) return '細雨綿綿，路面微濕'
   return '多雲時晴，適合城市漫步'
 }
 
@@ -37,12 +47,12 @@ function weatherAdvice(weather?: WeatherSnapshot): { icon: string; text: string 
   const code = weather.weatherCode
   const max = weather.temperatureMax
   const min = weather.temperatureMin
-  if (code >= 71 && max > 10) return null
-  if (code >= 71) {
+  if (isSnowCode(code) && max > 10) return null
+  if (isSnowCode(code)) {
     if (max <= 2) return { icon: '🧣', text: `低溫 ${min}°–${max}° 有雪，注意保暖與路面結冰` }
     return { icon: '❄️', text: `有降雪可能 ${min}°–${max}°，留意保暖` }
   }
-  if (code >= 51) return { icon: '☂️', text: `今日有雨（${min}°–${max}°），外出記得帶雨具` }
+  if (isRainCode(code)) return { icon: '☂️', text: `今日有雨（${min}°–${max}°），外出記得帶雨具` }
   if (code === 0 || code === 1) {
     if (max >= 30) return { icon: '🧴', text: `晴朗高溫 ${max}°，注意防曬與多補水` }
     if (max >= 26) return { icon: '☀️', text: `天氣晴朗 ${max}°，適合戶外活動` }
@@ -52,6 +62,19 @@ function weatherAdvice(weather?: WeatherSnapshot): { icon: string; text: string 
   if (max <= 5) return { icon: '🧣', text: `氣溫偏低 ${min}°–${max}°，外出加件外套` }
   if (max >= 32) return { icon: '🥤', text: `高溫 ${max}°，注意防暑` }
   return null
+}
+
+function formatLocalTime(now: Date, timezone?: string, longitude?: number): string {
+  if (timezone) {
+    try {
+      return new Intl.DateTimeFormat('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone }).format(now)
+    } catch {}
+  }
+  if (longitude != null) {
+    const localMillis = now.getTime() + (longitude / 15) * 60 * 60 * 1000
+    return new Intl.DateTimeFormat('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC' }).format(new Date(localMillis))
+  }
+  return new Intl.DateTimeFormat('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false }).format(now)
 }
 
 type WeatherCardProps = {
@@ -67,7 +90,7 @@ type WeatherCardProps = {
   onRefresh: () => void
 }
 
-export function WeatherCard({ weather, error, loading, location, countryCode, cityQuery, onSaveLocation, onRefresh }: WeatherCardProps) {
+export function WeatherCard({ weather, error, loading, location, countryCode, cityQuery, longitude, onSaveLocation, onRefresh }: WeatherCardProps) {
   const normalize = (value: string) => value.replace(/臺/g, '台').toLocaleLowerCase()
   const cityMatchesLocation = (cityName: string, loc: string) => {
     const nCity = normalize(cityName)
@@ -84,7 +107,8 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
   const [onlineHits, setOnlineHits] = useState<SearchHit[]>([])
   const [onlineSearching, setOnlineSearching] = useState(false)
   const [geocodingProvider, setGeocodingProvider] = useState<'open-meteo' | 'nominatim'>(() => {
-    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('geocodingProvider') : null
+    const storage = typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function' ? localStorage : undefined
+    const saved = storage?.getItem('geocodingProvider') ?? null
     return saved === 'open-meteo' ? 'open-meteo' : 'nominatim'
   })
   useEffect(() => {
@@ -267,21 +291,36 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
   }
 
   const theme = weatherTheme(weather?.weatherCode ?? 3)
-  const isNight = useMemo(() => {
-    const h = new Date().getHours()
-    return h < 6 || h >= 18
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 30_000)
+    return () => window.clearInterval(timer)
   }, [])
-  const narrative = weather ? weatherNarrative(weather.weatherCode, weather.temperatureMax) : '等待天氣資料，選擇地點後按更新'
+  const localTime = formatLocalTime(currentTime, weather?.timezone, longitude)
+  const isNight = useMemo(() => {
+    let h = currentTime.getHours()
+    if (weather?.timezone) {
+      try {
+        h = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: weather.timezone }).format(currentTime)) % 24
+      } catch {}
+    } else if (longitude != null) {
+      const utcHour = currentTime.getUTCHours() + currentTime.getUTCMinutes() / 60
+      h = (utcHour + longitude / 15 + 24) % 24
+    }
+    return h < 6 || h >= 18
+  }, [currentTime, longitude, weather?.timezone])
+  const narrative = weather ? weatherNarrative(weather.weatherCode) : '等待天氣資料，選擇地點後按更新'
   const advice = weatherAdvice(weather)
 
   return <section className={`weather-card weather-card--${theme} ${isNight ? 'weather-card--night' : ''}`}>
     <div className="weather-hero">
       <div className="weather-hero-sky" aria-hidden="true">
         <span className="weather-sky-glow" />
+        {isNight && <span className="weather-stars">✦　·　✧　·　✦　·　✧</span>}
         {theme === 'sun' && !isNight && <span className="weather-bg-icon" aria-hidden="true"><Sun size={140} /></span>}
         {theme === 'sun' && isNight && <span className="weather-bg-icon" aria-hidden="true"><Moon size={130} /></span>}
         {theme === 'cloud' && <span className="weather-bg-icon weather-bg-icon--cloud" aria-hidden="true"><Cloud size={130} /></span>}
-        {theme === 'rain' && <span className="weather-bg-icon weather-bg-icon--rain" aria-hidden="true"><CloudRain size={140} /></span>}
+        {theme === 'rain' && <><span className="weather-bg-icon weather-bg-icon--rain" aria-hidden="true"><CloudRain size={140} /></span><span className="weather-rain-lines" /></>}
         {theme === 'snow' && <span className="weather-bg-icon" aria-hidden="true"><Cloud size={120} /></span>}
         {theme === 'fog' && <span className="weather-bg-icon" aria-hidden="true"><Wind size={120} /></span>}
       </div>
@@ -296,6 +335,7 @@ export function WeatherCard({ weather, error, loading, location, countryCode, ci
       </div>
       <div className="weather-hero-place">
         <strong className="weather-location-large">{location}</strong>
+        <span className="weather-local-time">當地時間 {localTime}</span>
         <span className="weather-updated">{weather?.updatedAt ? `更新於 ${new Date(weather.updatedAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}` : '選擇地點後按更新'}</span>
       </div>
     </div>

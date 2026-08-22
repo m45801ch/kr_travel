@@ -25,6 +25,15 @@ describe('repositories', () => {
     expect(await tripRepository.getActiveTrip()).toEqual(trip)
   })
 
+  it('lists activities by entered time instead of creation order', async () => {
+    await Promise.all([
+      tripRepository.saveActivity({ id: 'activity-late', tripId: 'trip-1', dayId: 'day-1', date: '2026-10-01', time: '18:00', type: 'spot', title: '晚上的景點', locationName: '', address: '', googleMapsUrl: '', notes: '', order: 1, illustrationId: 'namsan-tower' }),
+      tripRepository.saveActivity({ id: 'activity-early', tripId: 'trip-1', dayId: 'day-1', date: '2026-10-01', time: '09:00', type: 'spot', title: '早上的景點', locationName: '', address: '', googleMapsUrl: '', notes: '', order: 2, illustrationId: 'namsan-tower' }),
+    ])
+
+    expect((await tripRepository.listActivities('day-1')).map((activity) => activity.id)).toEqual(['activity-early', 'activity-late'])
+  })
+
   it('removes an itinerary day so stale date cards cannot be listed', async () => {
     const days: TripDay[] = [
       { id: 'trip-1-day-1', tripId: 'trip-1', date: '2026-10-01', city: '首爾', title: 'Day 1', summary: '', accommodation: '', illustrationId: 'hanbok-woman' },

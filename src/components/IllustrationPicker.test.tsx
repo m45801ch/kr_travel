@@ -10,6 +10,20 @@ function Harness() {
 }
 
 describe('IllustrationPicker', () => {
+  it('keeps the illustration browser collapsed by default', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    const browser = screen.getByText('瀏覽其他圖案').closest('details')
+    expect(browser).not.toBeNull()
+    expect(browser).not.toHaveAttribute('open')
+    expect(screen.getByRole('tab', { name: '服裝' })).not.toBeVisible()
+
+    await user.click(screen.getByText('瀏覽其他圖案'))
+    expect(browser).toHaveAttribute('open')
+    expect(screen.getByRole('tab', { name: '服裝' })).toBeVisible()
+  })
+
   it('selects hanbok and supports reset', async () => {
     const user = userEvent.setup()
     render(<Harness />)

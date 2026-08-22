@@ -5,6 +5,7 @@ import type { Currency, Expense, ExpenseSplit, Member, SplitMode } from '../../d
 import { getLatestExchangeRate, getSupportedCurrencies } from '../../integrations/exchangeRates/frankfurter'
 import { splitExpense, type SplitParticipant } from '../../domain/splitting'
 import { CurrencyPicker } from './CurrencyPicker'
+import { normalizePaymentMethod, paymentMethodOptions } from './paymentMethods'
 
 type RateStatus = 'idle' | 'loading' | 'success' | 'error'
 type CurrencyStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -33,8 +34,12 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
   const [availableCurrencies, setAvailableCurrencies] = useState<CurrencyOption[]>(currencyOptions)
   const [currencyStatus, setCurrencyStatus] = useState<CurrencyStatus>('idle')
   const [currencyError, setCurrencyError] = useState('')
-  const [category, setCategory] = useState(initial?.category ?? '美食')
+  const predefinedCategories = ['美食', '交通', '住宿', '購物', '景點', '其他', '自定'] as const
+  const initialIsCustom = Boolean(initial?.category && !predefinedCategories.includes(initial.category as typeof predefinedCategories[number]))
+  const [category, setCategory] = useState(initialIsCustom ? '自定' : (initial?.category ?? '美食'))
+  const [customCategory, setCustomCategory] = useState(initialIsCustom ? (initial?.category ?? '') : '')
   const [payerId, setPayerId] = useState(initial?.payerId ?? members[0]?.id ?? '')
+  const [paymentMethod, setPaymentMethod] = useState(initial?.paymentMethod ? normalizePaymentMethod(initial.paymentMethod) : 'cash')
   const [splitMode, setSplitMode] = useState<SplitMode>(initial?.splitMode ?? 'equal')
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSplits.length ? initialSplits.map((split) => split.memberId) : members.map((member) => member.id))
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>(() => Object.fromEntries(initialSplits.map((split) => [split.memberId, String(split.amountMinor)])))
@@ -111,6 +116,8 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
     event.preventDefault()
     try {
       if (rateStatus === 'loading') throw new Error('正在更新匯率，請稍候再儲存')
+      const finalCategory = category === '自定' ? customCategory.trim() : category
+      if (category === '自定' && !finalCategory) throw new Error('請輸入自定類別名稱')
       const amountMinor = toMinorUnits(amount, currency)
       const parsedConversionRate = Number(conversionRate)
       if (!Number.isFinite(parsedConversionRate) || parsedConversionRate <= 0) throw new Error('請輸入大於 0 的換算匯率')
@@ -128,8 +135,9 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
         conversionCurrency,
         conversionRate: parsedConversionRate,
         convertedAmountMinor,
-        category,
+        category: finalCategory,
         payerId,
+        paymentMethod,
         splitMode,
         notes: notes.trim(),
       }
@@ -146,7 +154,8 @@ export function ExpenseForm({ tripId, baseCurrency, members, initial, initialSpl
     <div className="currency-load-status" aria-live="polite"><span>{currencyStatus === 'loading' ? '正在載入 Frankfurter 支援幣別…' : currencyStatus === 'success' ? `已載入 ${availableCurrencies.length} 種可搜尋幣別。` : currencyStatus === 'error' ? `${currencyError}，目前顯示常用幣別。` : '可搜尋幣別名稱、中文名稱、代碼或符號。'}</span><button className="button-secondary compact" type="button" onClick={() => void loadCurrencies()} disabled={currencyStatus === 'loading'}>{currencyStatus === 'loading' ? '載入中…' : '重新載入幣別'}</button></div>
     <div className="rate-panel" aria-live="polite"><div><span>自動匯率</span><strong>1 {currency} = {conversionRate || '—'} {conversionCurrency}</strong><small>換算後價格會隨金額與目標幣別自動更新。</small></div><button className="button-secondary compact" type="button" onClick={() => void refreshRate()} disabled={rateStatus === 'loading'}>{rateStatus === 'loading' ? '更新中…' : '更新最新匯率'}</button><p className={rateStatus === 'error' ? 'rate-message is-error' : 'rate-message'}>{rateStatus === 'loading' ? '正在取得最新可用匯率…' : rateStatus === 'error' ? rateError : rateDate ? `資料日期：${rateDate}` : isEditing ? '保留此筆記錄原本的匯率。' : '將自動取得最新可用匯率。'}</p></div>
     {conversionCurrency !== baseCurrency && <p className="base-rate-note">旅行預算會另以 1 {currency} = {baseRate} {baseCurrency} 計入，結算幣別為{currencyLabel(baseCurrency)}。</p>}
-    <div className="form-grid"><label>類別<select value={category} onChange={(event) => setCategory(event.target.value)}><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option><option>自定</option></select></label><label>付款人<select value={payerId} onChange={(event) => setPayerId(event.target.value)}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label></div>
+    <div className="form-grid"><label>類別<select value={category} onChange={(event) => setCategory(event.target.value)}><option>美食</option><option>交通</option><option>住宿</option><option>購物</option><option>景點</option><option>其他</option><option>自定</option></select>{category === '自定' && <input value={customCategory} onChange={(event) => setCustomCategory(event.target.value)} placeholder="輸入自定類別名稱" style={{ marginTop: 6 }} />}</label><label>付款方式<select aria-label="付款方式" value={paymentMethod} onChange={(event) => setPaymentMethod(normalizePaymentMethod(event.target.value))}>{paymentMethodOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label></div>
+    <label>付款人<select value={payerId} onChange={(event) => setPayerId(event.target.value)}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
     <div className="split-heading"><strong>分攤旅伴</strong><div className="split-toggle"><button className={splitMode === 'equal' ? 'is-active' : ''} type="button" onClick={() => setSplitMode('equal')}>平均</button><button className={splitMode === 'custom' ? 'is-active' : ''} type="button" onClick={() => setSplitMode('custom')}>自訂</button></div></div>
     <div className="member-checks">{members.map((member) => <label className="member-check" key={member.id}><input type="checkbox" checked={selectedIds.includes(member.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} /><span>{member.name}</span>{splitMode === 'custom' && selectedIds.includes(member.id) && <input aria-label={`${member.name}分攤金額`} inputMode="numeric" value={customAmounts[member.id] ?? ''} onChange={(event) => setCustomAmounts((current) => ({ ...current, [member.id]: event.target.value }))} placeholder="金額" />}</label>)}</div>
     <label>備註<textarea rows={2} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="記下這筆支出的細節" /></label>

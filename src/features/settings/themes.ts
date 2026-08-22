@@ -47,6 +47,8 @@ export function applyTheme(settings: Pick<Settings, 'themeColor' | 'themeId' | '
   const theme = getThemeDefinition(settings.themeId)
   document.documentElement.style.setProperty('--color-accent', settings.themeColor || theme.accent)
   document.documentElement.style.fontSize = `${settings.fontScale}rem`
-  document.documentElement.dataset.theme = settings.darkMode ? 'dark' : 'light'
+  // Dark mode is no longer exposed in settings; keep old saved values compatible
+  // while ensuring the app always uses the active light theme palette.
+  document.documentElement.dataset.theme = 'light'
   document.documentElement.dataset.appTheme = theme.id
 }

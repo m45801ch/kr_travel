@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { ImagePlus } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { Camera, ImagePlus, QrCode } from 'lucide-react'
 import type { Member } from '../../domain/types'
 import { IllustrationPicker } from '../../components/IllustrationPicker'
 import { compressPhoto, getPhoto, savePhoto } from '../lists/photoStore'
@@ -39,27 +39,102 @@ function useStoredPhotoUrl(photoId?: string) {
   return photoUrl
 }
 
+type DetectedBarcode = { rawValue?: string }
+type BarcodeDetectorLike = { detect: (source: HTMLVideoElement) => Promise<DetectedBarcode[]> }
+type BarcodeDetectorConstructor = new (options?: { formats?: string[] }) => BarcodeDetectorLike
+
+function parseLineQrValue(value: string): string {
+  const trimmed = value.trim()
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.hostname === 'line.me') {
+      const encodedId = parsed.pathname.split('/').filter(Boolean).pop()
+      if (encodedId) return decodeURIComponent(encodedId)
+    }
+    if (parsed.protocol === 'line:' && parsed.pathname) return decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() ?? trimmed)
+  } catch { return trimmed }
+  return trimmed
+}
+
 export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: CompanionFormProps) {
   const [name, setName] = useState(member?.name ?? '')
   const [phone, setPhone] = useState(member?.phone ?? '')
   const [email, setEmail] = useState(member?.email ?? '')
   const [lineId, setLineId] = useState(member?.lineId ?? '')
+  const [lineQrPhoto, setLineQrPhoto] = useState<File>()
+  const [removeLineQrPhoto, setRemoveLineQrPhoto] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scannerError, setScannerError] = useState('')
+  const scannerVideoRef = useRef<HTMLVideoElement>(null)
   const [address, setAddress] = useState(member?.address ?? '')
   const [notes, setNotes] = useState(member?.notes ?? '')
-  const [illustrationId, setIllustrationId] = useState<Member['illustrationId']>(member?.illustrationId ?? 'hanbok-woman')
+  const [illustrationId, setIllustrationId] = useState<Member['illustrationId']>(member?.illustrationId ?? 'companion-girl')
   const [photo, setPhoto] = useState<File>()
   const [removePhoto, setRemovePhoto] = useState(false)
   const photoPreviewUrl = useMemo(() => photo ? URL.createObjectURL(photo) : undefined, [photo])
   const storedPhotoUrl = useStoredPhotoUrl(member?.photoId)
+  const storedLineQrUrl = useStoredPhotoUrl(member?.lineQrPhotoId)
+  const lineQrPreviewUrl = useMemo(() => lineQrPhoto ? URL.createObjectURL(lineQrPhoto) : undefined, [lineQrPhoto])
   const fallbackIllustration = getIllustration(illustrationId)
   const displayedPhotoUrl = removePhoto ? undefined : (photoPreviewUrl ?? storedPhotoUrl)
+  const displayedLineQrUrl = removeLineQrPhoto ? undefined : (lineQrPreviewUrl ?? storedLineQrUrl)
   const isEditing = Boolean(member)
 
   useEffect(() => {
     return () => {
       if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl)
+      if (lineQrPreviewUrl) URL.revokeObjectURL(lineQrPreviewUrl)
     }
-  }, [photoPreviewUrl])
+  }, [lineQrPreviewUrl, photoPreviewUrl])
+
+  useEffect(() => {
+    if (!scannerOpen) return
+    let active = true
+    let stream: MediaStream | undefined
+    let animationFrame = 0
+    const stop = () => {
+      active = false
+      if (animationFrame) window.cancelAnimationFrame(animationFrame)
+      stream?.getTracks().forEach((track) => track.stop())
+      if (scannerVideoRef.current) scannerVideoRef.current.srcObject = null
+    }
+    const scan = async () => {
+      const detector = new ((window as Window & { BarcodeDetector?: BarcodeDetectorConstructor }).BarcodeDetector ?? class { detect = async () => [] })({ formats: ['qr_code'] })
+      if (!scannerVideoRef.current || !active) return
+      try {
+        const results = await detector.detect(scannerVideoRef.current)
+        const value = results[0]?.rawValue
+        if (value) {
+          setLineId(parseLineQrValue(value))
+          setScannerOpen(false)
+          return
+        }
+      } catch { setScannerError('無法辨識 QR Code，請調整距離與光線。') }
+      if (active) animationFrame = window.requestAnimationFrame(() => void scan())
+    }
+    const start = async () => {
+      const Detector = (window as Window & { BarcodeDetector?: BarcodeDetectorConstructor }).BarcodeDetector
+      if (!Detector) {
+        setScannerError('此瀏覽器不支援相機 QR Code 掃描，請改用上傳圖片。')
+        return
+      }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setScannerError('目前環境無法使用相機，請改用上傳圖片。')
+        return
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+        if (!active || !scannerVideoRef.current) return
+        scannerVideoRef.current.srcObject = stream
+        await scannerVideoRef.current.play()
+        void scan()
+      } catch {
+        setScannerError('無法開啟相機，請確認已允許相機權限，或改用上傳圖片。')
+      }
+    }
+    void start()
+    return stop
+  }, [scannerOpen])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -67,7 +142,9 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
 
     const id = member?.id ?? crypto.randomUUID()
     const photoId = photo ? `${id}-photo-${Date.now()}` : (removePhoto ? undefined : member?.photoId)
+    const lineQrPhotoId = lineQrPhoto ? `${id}-line-qr-${Date.now()}` : (removeLineQrPhoto ? undefined : member?.lineQrPhotoId)
     if (photo && photoId) await savePhoto(photoId, await compressPhoto(photo))
+    if (lineQrPhoto && lineQrPhotoId) await savePhoto(lineQrPhotoId, await compressPhoto(lineQrPhoto, 1200))
 
     const nextMember: Member = {
       id,
@@ -79,6 +156,7 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,
       lineId: lineId.trim() || undefined,
+      lineQrPhotoId,
       address: address.trim() || undefined,
     }
     if (photoId) nextMember.photoId = photoId
@@ -126,7 +204,19 @@ export function CompanionForm({ tripId, member, onSave, onDelete, onCancel }: Co
 
         <div className="form-grid">
           <label>電話<input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="例如：0912-345-678" /></label>
-          <label>Line<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123" /></label>
+          <label>LINE ID<input value={lineId} onChange={(event) => setLineId(event.target.value)} placeholder="例如：line_id123 或 @官方帳號" /></label>
+        </div>
+        <div className="line-friend-tools">
+          <div className="line-friend-heading"><QrCode size={18} aria-hidden="true" /><strong>LINE 加好友 QR Code</strong><small>選填，可上傳 LINE 裡的 QR Code</small></div>
+          <button className="line-scan-button" type="button" onClick={() => { setScannerError(''); setScannerOpen(true) }}><Camera size={17} aria-hidden="true" />開啟相機掃描</button>
+          {scannerOpen && <div className="line-scanner" role="dialog" aria-label="掃描 LINE QR Code"><video ref={scannerVideoRef} className="line-scanner-video" playsInline muted /><p>{scannerError || '請將 LINE QR Code 對準框線內'}</p><button className="button-secondary compact" type="button" onClick={() => setScannerOpen(false)}>關閉相機</button></div>}
+          {displayedLineQrUrl && <img className="line-qr-preview" src={displayedLineQrUrl} alt="LINE 加好友 QR Code 預覽" />}
+          <label className="companion-upload line-qr-upload">
+            <QrCode size={20} aria-hidden="true" />
+            <span>{isEditing ? '更換 LINE QR Code' : '上傳 LINE QR Code'} <small>（選填）</small></span>
+            <input type="file" accept="image/*" onChange={(event) => { setLineQrPhoto(event.target.files?.[0]); setRemoveLineQrPhoto(false) }} />
+          </label>
+          {isEditing && (member?.lineQrPhotoId || lineQrPhoto) && !removeLineQrPhoto && <button className="companion-clear-photo-button" type="button" onClick={() => { setLineQrPhoto(undefined); setRemoveLineQrPhoto(true) }}>移除 LINE QR Code</button>}
         </div>
         <div className="form-grid">
           <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="例如：test@example.com" /></label>

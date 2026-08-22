@@ -21,11 +21,24 @@ describe('ExpensePage', () => {
       { id: 'me', tripId: 'trip-1', name: '我', color: '#ef8490', illustrationId: 'hanbok-woman', notes: '' },
       { id: 'friend', tripId: 'trip-1', name: '旅伴', color: '#8ba9d6', illustrationId: 'hanbok-man', notes: '' },
     ])
-    await db.expenses.add({ id: 'expense-1', tripId: 'trip-1', date: '2026-08-21', amountMinor: 1200, currency: 'JPY', exchangeRateToBase: 0.22, baseAmountMinor: 264, conversionCurrency: 'TWD', conversionRate: 0.22, convertedAmountMinor: 264, category: '交通', payerId: 'me', splitMode: 'equal', notes: '機場快線' })
+    await db.expenses.add({ id: 'expense-1', tripId: 'trip-1', date: '2026-08-21', amountMinor: 1200, currency: 'JPY', exchangeRateToBase: 0.22, baseAmountMinor: 264, conversionCurrency: 'TWD', conversionRate: 0.22, convertedAmountMinor: 264, category: '交通', payerId: 'me', paymentMethod: 'credit-card', splitMode: 'equal', notes: '機場快線' })
     await db.expenseSplits.bulkAdd([
       { id: 'expense-1-split-me', expenseId: 'expense-1', tripId: 'trip-1', memberId: 'me', amountMinor: 132, percentage: 50, settled: true },
       { id: 'expense-1-split-friend', expenseId: 'expense-1', tripId: 'trip-1', memberId: 'friend', amountMinor: 132, percentage: 50, settled: false },
     ])
+  })
+
+  it('filters expenses by payment method and shows payment statistics', async () => {
+    const user = userEvent.setup()
+    await db.expenses.add({ id: 'expense-2', tripId: 'trip-1', date: '2026-08-22', amountMinor: 1000, currency: 'JPY', exchangeRateToBase: 0.22, baseAmountMinor: 220, conversionCurrency: 'TWD', conversionRate: 0.22, convertedAmountMinor: 220, category: '美食', payerId: 'friend', paymentMethod: 'cash', splitMode: 'equal', notes: '拉麵' })
+    render(<ExpensePage />)
+
+    expect(await screen.findByText('付款方式統計')).toBeInTheDocument()
+    expect(screen.getByText('付款：信用卡')).toBeInTheDocument()
+    expect(screen.getByText('付款：現金')).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText('依付款方式篩選'), 'credit-card')
+    expect(screen.getByRole('button', { name: '編輯交通支出' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '編輯美食支出' })).not.toBeInTheDocument()
   })
 
   afterEach(async () => {
