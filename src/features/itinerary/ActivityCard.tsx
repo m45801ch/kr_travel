@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../data/db'
 import { buildMapSearchUrl } from '../../integrations/maps/mapUrls'
 import { IllustrationArtwork } from '../../components/IllustrationArtwork'
-import { formatRouteEstimate, type RouteEstimate } from './routeEstimate'
+import { formatWalkDuration, type RouteEstimate } from './routeEstimate'
 
 export function ActivityCard({ activity, onEdit, nextStop, routeEstimate, onMoveUp, onMoveDown }: { activity: Activity; onEdit: (id: string) => void; nextStop?: string; routeEstimate?: RouteEstimate; onMoveUp?: () => void; onMoveDown?: () => void }) {
   const illustration = getIllustration(activity.illustrationId)
@@ -18,7 +18,7 @@ export function ActivityCard({ activity, onEdit, nextStop, routeEstimate, onMove
     <button className="activity-card-main" type="button" aria-label={`編輯行程 ${activity.title}`} onClick={() => onEdit(activity.id)}>
       <div className="activity-time">{activity.time || '待定'}</div>
       <div className="activity-mark"><IllustrationArtwork illustration={illustration} decorative /></div>
-      <div className="activity-info"><strong>{activity.title}</strong><span>{activity.locationName || activity.type}</span>{routeEstimate && nextStop && <small className="activity-route-estimate">{formatRouteEstimate(routeEstimate, nextStop)}</small>}{activity.notes && <small>{activity.notes}</small>}</div>
+      <div className="activity-info"><strong>{activity.title}</strong><span>{activity.locationName || activity.type}</span>{routeEstimate && nextStop && <small className="activity-route-estimate"><span className="activity-route-distance">距{nextStop}約 {routeEstimate.distanceKm} km</span><span className="activity-route-separator"> · </span><span className="activity-route-walk">步行約 {formatWalkDuration(routeEstimate.walkMinutes)}</span></small>}{activity.notes && <small>{activity.notes}</small>}</div>
     </button>
     <div className="activity-actions">
       {onMoveUp && <button type="button" aria-label={`將${activity.title}上移`} onClick={onMoveUp}><ArrowUp size={16} /></button>}

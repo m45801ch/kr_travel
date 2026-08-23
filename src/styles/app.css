@@ -223,10 +223,12 @@ html { font-size: 14px; }
 .activity-info strong, .activity-info span, .activity-info small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .activity-info strong { color: var(--color-text); }
 .activity-info span, .activity-info small { color: var(--color-muted); font-size: .78rem; }
+.activity-info .activity-route-estimate { display: block; min-width: 0; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+.activity-info .activity-route-estimate > span { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
 .activity-actions { display: flex; align-items: center; padding-right: 8px; }
 .activity-actions a, .activity-actions button { display: grid; place-items: center; padding: 7px; border: 0; border-radius: 13px; color: var(--color-accent); background: var(--color-accent-soft); }
 .activity-actions a:hover, .activity-actions a:focus-visible, .activity-actions button:hover, .activity-actions button:focus-visible { color: white; background: var(--color-accent); outline: none; }
-@media (max-width: 600px) { .activity-actions button { display: none; } .activity-entry { touch-action: pan-y; } .activity-drag-hint { display: block; margin: 0 0 3px; color: var(--color-muted); font-size: .62rem; text-align: right; opacity: .7; } .activity-route-estimate { display: block; overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; } }
+@media (max-width: 600px) { .activity-actions button { display: none; } .activity-entry { touch-action: pan-y; } .activity-drag-hint { display: block; margin: 0 0 3px; color: var(--color-muted); font-size: .62rem; text-align: right; opacity: .7; } .activity-info .activity-route-estimate > span { display: block; min-width: 0; } .activity-route-separator { display: none !important; } }
 .activity-entry:not(:last-child) .activity-card::after { position: absolute; z-index: 0; top: 100%; left: 32px; width: 2px; height: 28px; content: ''; background: repeating-linear-gradient(to bottom, color-mix(in srgb, var(--color-accent) 70%, white) 0 5px, transparent 5px 9px); }
 .activity-entry:not(:last-child) .activity-card::before { position: absolute; z-index: 1; top: calc(100% + 8px); left: 25px; display: grid; width: 16px; height: 16px; place-items: center; border: 2px solid var(--color-surface); border-radius: 50%; color: white; content: '↓'; background: var(--color-accent); box-shadow: 0 3px 8px color-mix(in srgb, var(--color-accent) 28%, transparent); font-size: .65rem; font-weight: 900; line-height: 1; }
 .empty-activities { padding: 28px 14px; border: 1px dashed #e9c7bd; border-radius: 20px; color: var(--color-muted); text-align: center; }

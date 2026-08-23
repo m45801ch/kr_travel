@@ -36,6 +36,15 @@ describe('行程卡片互動', () => {
     expect(screen.queryByRole('button', { name: '刪除 景福宮' })).not.toBeInTheDocument()
   })
 
+  it('將距離與步行時間分開呈現，且超過一小時使用小時格式', () => {
+    render(<ActivityCard activity={activity} onEdit={vi.fn()} nextStop="晴空塔" routeEstimate={{ distanceKm: 3894.1, walkMinutes: 100 }} />)
+
+    expect(screen.getByText('距晴空塔約 3894.1 km')).toBeInTheDocument()
+    expect(screen.getByText('步行約 1 小時 40 分')).toBeInTheDocument()
+    expect(screen.getByText('距晴空塔約 3894.1 km')).toHaveClass('activity-route-distance')
+    expect(screen.getByText('步行約 1 小時 40 分')).toHaveClass('activity-route-walk')
+  })
+
   it('僅在編輯既有行程時於表單內顯示垃圾桶刪除按鈕', async () => {
     const user = userEvent.setup()
     const onDelete = vi.fn()
