@@ -1,6 +1,6 @@
-import { Download, Package, Upload } from 'lucide-react'
+import { Download, FileText, Package, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { exportBackup, exportEmergencyPackage, importBackup, listBackupSnapshots, restoreLatestBackupSnapshot } from '../../data/backup'
+import { exportBackup, exportEmergencyPackage, exportItinerarySnapshotHtml, importBackup, listBackupSnapshots, restoreLatestBackupSnapshot } from '../../data/backup'
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
@@ -29,6 +29,16 @@ export function BackupControls({ onImported }: { onImported: () => void }) {
       setStatus('已匯出旅行應急 ZIP，內含 HTML、CSV、JSON 與照片資料。')
     } catch {
       setStatus('匯出失敗，請稍後再試。')
+    }
+  }
+
+  const downloadSnapshot = async () => {
+    setStatus('正在製作離線行程快照…')
+    try {
+      downloadBlob(await exportItinerarySnapshotHtml(), `itinerary-snapshot-${stamp()}.html`)
+      setStatus('已匯出可離線開啟的唯讀 HTML 行程快照。')
+    } catch {
+      setStatus('行程快照匯出失敗，請稍後再試。')
     }
   }
 
@@ -63,6 +73,7 @@ export function BackupControls({ onImported }: { onImported: () => void }) {
     <p>資料只存在這台裝置；建議出發前匯出旅行應急包。</p>
     <div className="backup-actions">
       <button className="backup-emergency-button" type="button" onClick={() => void downloadEmergency()}><Package size={18} />匯出旅行應急包</button>
+      <button type="button" onClick={() => void downloadSnapshot()}><FileText size={18} />匯出行程快照 HTML</button>
       <button type="button" onClick={() => void downloadJson()}><Download size={18} />匯出 JSON</button>
       <label><Upload size={18} />匯入 JSON<input type="file" accept="application/json" onChange={(event) => void upload(event.target.files?.[0])} /></label>
       {hasSnapshot && <button type="button" onClick={() => void restoreSnapshot()}>還原上次匯入前快照</button>}

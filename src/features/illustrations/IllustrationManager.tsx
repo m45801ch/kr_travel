@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, ChevronDown, Download, GripVertical, Pencil, Star, X } from 'lucide-react'
+import { Check, ChevronDown, Download, GripVertical, Pencil, Star, Upload, X } from 'lucide-react'
 import { db } from '../../data/db'
 import { illustrationCatalog as staticCatalog, illustrationCategories, type IllustrationCategory } from '../../assets/illustrations'
 import { clearRecentIllustrations, ILLUSTRATION_PREFERENCES_ID, mergeCatalog, toggleIllustrationFavorite, upsertCategoryConfig, upsertIllustrationOverride } from './illustrationStore'
-import { exportIllustrationSettings } from './illustrationSettings'
+import { exportIllustrationSettings, importIllustrationSettings } from './illustrationSettings'
 
 const fontOptions = [
   { label: '預設', value: '' },
@@ -26,6 +26,7 @@ export function IllustrationManager() {
   const [categoryEditLabel, setCategoryEditLabel] = useState('')
   const [categoryFont, setCategoryFont] = useState('')
   const [exportStatus, setExportStatus] = useState('')
+  const [importStatus, setImportStatus] = useState('')
 
   const overridesMap = Object.fromEntries((overrides ?? []).map((o) => [o.id, o]))
   const categoryMap = Object.fromEntries((categoryConfigs ?? []).map((c) => [c.category, c]))
@@ -109,6 +110,17 @@ export function IllustrationManager() {
     setExportStatus('已匯出目前圖案分類、名稱與個人偏好。')
   }
 
+  const importSettings = async (file?: File) => {
+    if (!file) return
+    try {
+      const report = await importIllustrationSettings(file)
+      const cleaned = report.discarded > 0 ? `，已清理 ${report.discarded} 筆無效資料` : ''
+      setImportStatus(`已匯入 ${report.illustrationOverrides} 個名稱／分類設定與 ${report.favoriteIllustrationIds} 個最愛${cleaned}。`)
+    } catch (error) {
+      setImportStatus(error instanceof Error ? error.message : '圖案設定匯入失敗。')
+    }
+  }
+
   return (
     <details className="settings-card illustration-manager">
       <summary className="illustration-manager-summary">
@@ -122,8 +134,12 @@ export function IllustrationManager() {
           <span><strong>最近使用</strong> {recentIds.length}</span>
           {recentIds.length > 0 && <button type="button" onClick={() => void clearRecentIllustrations()}>清除最近使用</button>}
         </div>
-        <button type="button" className="button-secondary" onClick={() => void exportSettings()}><Download size={16} />匯出目前圖案設定</button>
+        <div className="illustration-settings-actions">
+          <button type="button" className="button-secondary" onClick={() => void exportSettings()}><Download size={16} />匯出目前圖案設定</button>
+          <label className="button-secondary illustration-settings-upload"><Upload size={16} />匯入圖案設定<input type="file" accept="application/json" onChange={(event) => { const file = event.target.files?.[0]; void importSettings(file); event.currentTarget.value = '' }} /></label>
+        </div>
         {exportStatus && <p className="backup-status" role="status">{exportStatus}</p>}
+        {importStatus && <p className="backup-status" role="status">{importStatus}</p>}
 
         {Array.from(grouped.entries()).map(([category, items]) => {
           const config = categoryMap[category]

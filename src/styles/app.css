@@ -73,6 +73,9 @@ html { font-size: 14px; }
 .illustration-manage-preferences { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--color-muted); font-size: .78rem; }
 .illustration-manage-preferences strong { color: var(--color-text); }
 .illustration-manage-preferences button { border: 0; padding: 0; color: var(--color-accent); background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
+.illustration-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.illustration-settings-upload { position: relative; overflow: hidden; cursor: pointer; }
+.illustration-settings-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 .illustration-manage-art { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 10px; background: var(--color-surface); font-size: 1.6rem; }
 .illustration-manage-art img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
 .illustration-manage-favorite { position: absolute; top: 4px; left: 4px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 1px solid rgba(255,255,255,.8); border-radius: 999px; color: white; background: rgba(0,0,0,.35); }
@@ -170,6 +173,22 @@ html { font-size: 14px; }
 @media (max-width: 520px) { .weather-location-primary-search { grid-template-columns: 1fr; gap: 6px; } .weather-location-selects { grid-template-columns: 1fr; } }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.today-summary-card { display: grid; gap: 14px; padding: 18px; border: 1px solid color-mix(in srgb, var(--color-accent) 24%, var(--color-border)); border-radius: 25px; background: linear-gradient(145deg, color-mix(in srgb, var(--color-accent-soft) 58%, var(--color-surface)), var(--color-surface)); box-shadow: var(--shadow-card); }
+.today-summary-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.today-summary-heading h2 { margin: 4px 0 3px; color: var(--color-text); font-size: 1.28rem; }
+.today-summary-heading p:not(.eyebrow) { margin: 0; color: var(--color-muted); font-size: .8rem; }
+.today-summary-heading > svg { flex: 0 0 auto; color: var(--color-accent); }
+.today-summary-next { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 17px; background: color-mix(in srgb, var(--color-surface) 78%, transparent); }
+.today-summary-icon { display: grid; place-items: center; flex: 0 0 38px; width: 38px; height: 38px; border-radius: 13px; color: white; background: var(--color-accent); }
+.today-summary-next > div:last-child { display: grid; gap: 2px; min-width: 0; }
+.today-summary-next span, .today-summary-stats span { color: var(--color-muted); font-size: .7rem; font-weight: 700; }
+.today-summary-next strong { overflow: hidden; color: var(--color-text); text-overflow: ellipsis; white-space: nowrap; }
+.today-summary-next small { overflow: hidden; color: var(--color-muted); text-overflow: ellipsis; white-space: nowrap; }
+.today-summary-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.today-summary-stats > div { display: grid; gap: 3px; min-width: 0; padding: 10px; border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent); border-radius: 15px; background: color-mix(in srgb, var(--color-surface) 58%, transparent); }
+.today-summary-stats svg { color: var(--color-accent); }
+.today-summary-stats strong { overflow: hidden; color: var(--color-text); font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 520px) { .today-summary-card { padding: 15px; } .today-summary-stats { grid-template-columns: 1fr; } .today-summary-stats > div { grid-template-columns: 22px minmax(0, 1fr); align-items: center; } .today-summary-stats > div strong { grid-column: 2; } .today-summary-stats > div span { grid-column: 2; grid-row: 1; } }
 .day-card { display: grid; gap: 18px; padding: 22px 16px 16px; border: 1px solid var(--color-border); border-radius: 30px; background: linear-gradient(145deg, #fffdf8, #fff5e9); box-shadow: var(--shadow-card); }
 .day-card-heading { display: flex; justify-content: space-between; gap: 12px; padding: 0 5px; }
 .day-card-heading-actions { display: grid; justify-items: end; align-content: start; gap: 7px; }

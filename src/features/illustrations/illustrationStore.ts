@@ -1,4 +1,4 @@
-import { type IllustrationCategory, type IllustrationOption } from '../../assets/illustrations'
+import { illustrationCatalog, type IllustrationCategory, type IllustrationOption } from '../../assets/illustrations'
 import { db } from '../../data/db'
 
 export type IllustrationOverride = {
@@ -22,15 +22,23 @@ export type IllustrationPreferences = {
 export const ILLUSTRATION_PREFERENCES_ID = 'singleton' as const
 export const MAX_RECENT_ILLUSTRATIONS = 12
 
-const emptyPreferences = (): IllustrationPreferences => ({
-  id: ILLUSTRATION_PREFERENCES_ID,
-  favoriteIds: [],
-  recentIds: [],
-})
+const knownIllustrationIds = new Set(illustrationCatalog.map((item) => item.id))
 
-function normalizeIds(ids: unknown): string[] {
+export function isKnownIllustrationId(id: string): boolean {
+  return knownIllustrationIds.has(id)
+}
+
+export function normalizeIllustrationIds(ids: unknown): string[] {
   if (!Array.isArray(ids)) return []
-  return Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0)))
+  return Array.from(new Set(ids.filter((id): id is string => typeof id === 'string' && id.length > 0 && isKnownIllustrationId(id))))
+}
+
+export function normalizeIllustrationPreferences(value: { favoriteIds?: unknown; recentIds?: unknown } | undefined): IllustrationPreferences {
+  return {
+    id: ILLUSTRATION_PREFERENCES_ID,
+    favoriteIds: normalizeIllustrationIds(value?.favoriteIds),
+    recentIds: normalizeIllustrationIds(value?.recentIds).slice(0, MAX_RECENT_ILLUSTRATIONS),
+  }
 }
 
 export async function getIllustrationOverrides(): Promise<Record<string, IllustrationOverride>> {
@@ -44,6 +52,7 @@ export async function getCategoryConfigs(): Promise<Record<string, CategoryConfi
 }
 
 export async function upsertIllustrationOverride(override: IllustrationOverride): Promise<void> {
+  if (!isKnownIllustrationId(override.id)) return
   await db.illustrationOverrides.put(override)
 }
 
@@ -85,26 +94,18 @@ export function getCategoryLabel(category: string, configs: Record<string, Categ
 
 export async function getIllustrationPreferences(): Promise<IllustrationPreferences> {
   const stored = await db.illustrationPreferences.get(ILLUSTRATION_PREFERENCES_ID)
-  if (!stored) return emptyPreferences()
-  return {
-    id: ILLUSTRATION_PREFERENCES_ID,
-    favoriteIds: normalizeIds(stored.favoriteIds),
-    recentIds: normalizeIds(stored.recentIds).slice(0, MAX_RECENT_ILLUSTRATIONS),
-  }
+  return normalizeIllustrationPreferences(stored)
 }
 
 async function saveIllustrationPreferences(preferences: Pick<IllustrationPreferences, 'favoriteIds' | 'recentIds'>): Promise<IllustrationPreferences> {
-  const normalized: IllustrationPreferences = {
-    id: ILLUSTRATION_PREFERENCES_ID,
-    favoriteIds: normalizeIds(preferences.favoriteIds),
-    recentIds: normalizeIds(preferences.recentIds).slice(0, MAX_RECENT_ILLUSTRATIONS),
-  }
+  const normalized = normalizeIllustrationPreferences(preferences)
   await db.illustrationPreferences.put(normalized)
   return normalized
 }
 
 export async function toggleIllustrationFavorite(id: string): Promise<IllustrationPreferences> {
   const current = await getIllustrationPreferences()
+  if (!isKnownIllustrationId(id)) return current
   const favoriteIds = current.favoriteIds.includes(id)
     ? current.favoriteIds.filter((favoriteId) => favoriteId !== id)
     : [id, ...current.favoriteIds]
@@ -113,6 +114,7 @@ export async function toggleIllustrationFavorite(id: string): Promise<Illustrati
 
 export async function recordIllustrationUse(id: string): Promise<IllustrationPreferences> {
   const current = await getIllustrationPreferences()
+  if (!isKnownIllustrationId(id)) return current
   const recentIds = [id, ...current.recentIds.filter((recentId) => recentId !== id)]
   return saveIllustrationPreferences({ ...current, recentIds })
 }

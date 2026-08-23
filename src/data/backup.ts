@@ -1,6 +1,7 @@
 import { db } from './db'
 import type { Activity, Expense, ExpenseSplit, ListItem, Member, Settings, Trip, TripDay, WeatherCache } from '../domain/types'
 import { fromMinorUnits } from '../domain/money'
+import { illustrationCatalog } from '../assets/illustrations'
 import { strToU8, zipSync } from 'fflate'
 
 interface BackupData { trips: Trip[]; days: TripDay[]; activities: Activity[]; members: Member[]; expenses: Expense[]; expenseSplits: ExpenseSplit[]; listItems: ListItem[]; weatherCache: WeatherCache[]; settings: Settings[] }
@@ -79,7 +80,12 @@ function photoMarkup(photoUrls: Map<string, string>, id?: string, alt = '旅程�
   return url ? `<img class="embedded-photo" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}">` : ''
 }
 
-export async function exportEmergencyHtml(): Promise<Blob> {
+function illustrationMarkup(illustrationUrls: Map<string, string>, id?: string, alt = '行程圖示'): string {
+  const url = id ? illustrationUrls.get(id) : undefined
+  return url ? `<img class="embedded-illustration" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}">` : ''
+}
+
+async function exportHtmlSnapshot(documentLabel: '旅行應急備份' | '行程快照'): Promise<Blob> {
   const data = await readData()
   const photoUrls = await readPhotoDataUrls()
   const trip = data.trips.find((item) => item.active) ?? data.trips[0]
@@ -88,16 +94,40 @@ export async function exportEmergencyHtml(): Promise<Blob> {
   const lists = data.listItems.filter((item) => !trip || item.tripId === trip.id)
   const expenses = data.expenses.filter((expense) => !trip || expense.tripId === trip.id).sort((a, b) => a.date.localeCompare(b.date))
   const memberNames = new Map(members.map((member) => [member.id, member.name]))
-  const activitySections = days.map((day) => {
+  const illustrationIds = new Set([
+    ...days.map((day) => day.illustrationId),
+    ...data.activities.filter((activity) => !trip || activity.tripId === trip.id).map((activity) => activity.illustrationId),
+    trip?.illustrationId,
+  ].filter((id): id is string => Boolean(id)))
+  const illustrationEntries = await Promise.all(Array.from(illustrationIds).map(async (id) => {
+    const url = illustrationCatalog.find((item) => item.id === id)?.imageUrl
+    if (!url) return [id, ''] as const
+    try {
+      const response = await fetch(url)
+      return response.ok ? [id, await formatPhotoDataUrl(await response.blob())] as const : [id, ''] as const
+    } catch {
+      return [id, ''] as const
+    }
+  }))
+  const illustrationUrls = new Map(illustrationEntries.filter(([, url]) => Boolean(url)))
+  const activitySections = (await Promise.all(days.map(async (day) => {
     const activities = data.activities.filter((activity) => activity.dayId === day.id).sort((a, b) => a.time.localeCompare(b.time))
-    return `<article class="day-section"><div class="day-heading"><div><h3>${escapeHtml(day.title)}</h3><p>${escapeHtml(day.date)} · ${escapeHtml(day.city)}</p></div>${photoMarkup(photoUrls, day.photoId, `${day.title}照片`)}</div>${activities.length ? `<ul>${activities.map((activity) => `<li><strong>${escapeHtml(activity.time || '待定')}　${escapeHtml(activity.title)}</strong><span>${escapeHtml(activity.locationName || activity.address || '')}</span>${activity.notes ? `<small>${escapeHtml(activity.notes)}</small>` : ''}</li>`).join('')}</ul>` : '<p class="muted">今天尚未安排活動。</p>'}</article>`
-  }).join('')
+    return `<article class="day-section"><div class="day-heading"><div><h3>${escapeHtml(day.title)}</h3><p>${escapeHtml(day.date)} · ${escapeHtml(day.city)}</p></div>${illustrationMarkup(illustrationUrls, day.illustrationId, day.title)}${photoMarkup(photoUrls, day.photoId, `${day.title}照片`)}</div>${activities.length ? `<ul>${activities.map((activity) => `<li>${illustrationMarkup(illustrationUrls, activity.illustrationId, activity.title)}<strong>${escapeHtml(activity.time || '待定')}&nbsp;${escapeHtml(activity.title)}</strong><span>${escapeHtml(activity.locationName || activity.address || '')}</span>${activity.notes ? `<small>${escapeHtml(activity.notes)}</small>` : ''}</li>`).join('')}</ul>` : '<p class="muted">今天尚未安排活動。</p>'}</article>`
+  }))).join('')
   const companionSection = members.length ? members.map((member) => `<article class="companion"><div>${photoMarkup(photoUrls, member.photoId, `${member.name}照片`)}<div><h3>${escapeHtml(member.name)}</h3><p>${escapeHtml(member.phone || '')}${member.email ? ` · ${escapeHtml(member.email)}` : ''}</p>${member.lineAddUrl ? `<p>LINE 加好友：${escapeHtml(member.lineAddUrl)}</p>` : member.lineId ? `<p>LINE ID：${escapeHtml(member.lineId)}</p>` : ''}${member.address ? `<p>${escapeHtml(member.address)}</p>` : ''}</div></div>${photoMarkup(photoUrls, member.lineQrPhotoId, `${member.name} LINE QR Code`)}</article>`).join('') : '<p class="muted">尚未新增旅伴。</p>'
   const listSection = lists.length ? `<table><thead><tr><th>類型</th><th>項目</th><th>分類</th><th>地點</th><th>狀態</th><th>備註</th></tr></thead><tbody>${lists.map((item) => `<tr><td>${item.type === 'shopping' ? '購物' : '準備'}</td><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.category)}</td><td>${escapeHtml(item.location)}</td><td>${item.completed ? '已完成' : '未完成'}</td><td>${escapeHtml(item.note)}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">尚未建立購物或準備清單。</p>'
   const expenseSection = expenses.length ? `<table><thead><tr><th>日期</th><th>項目</th><th>付款人</th><th>付款方式</th><th>金額</th><th>換算</th><th>備註</th></tr></thead><tbody>${expenses.map((expense) => `<tr><td>${escapeHtml(expense.date)}</td><td>${escapeHtml(expense.category)}</td><td>${escapeHtml(memberNames.get(expense.payerId) ?? expense.payerId)}</td><td>${escapeHtml(paymentMethodLabel(expense.paymentMethod))}</td><td>${escapeHtml(formatExpense(expense))}</td><td>${expense.convertedAmountMinor != null && expense.conversionCurrency ? `${escapeHtml(String(fromMinorUnits(expense.convertedAmountMinor, expense.conversionCurrency)))} ${escapeHtml(expense.conversionCurrency)}` : ''}</td><td>${escapeHtml(expense.notes)}</td></tr>`).join('')}</tbody></table>` : '<p class="muted">尚未建立記帳資料。</p>'
-  const title = trip?.title ?? '旅行應急備份'
-  const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}｜旅行應急備份</title><style>body{margin:0;padding:28px;color:#263244;background:#fffaf0;font:16px/1.6 system-ui,"Noto Sans TC",sans-serif}main{max-width:960px;margin:auto}h1{margin:0;color:#243b61;font-size:2rem}h2{margin:30px 0 12px;padding-bottom:6px;border-bottom:2px solid #ef8490;color:#243b61}h3{margin:0;color:#35496b}.meta,.muted{color:#68758b}.day-section,.companion{margin:12px 0;padding:16px;border:1px solid #e5d8ce;border-radius:16px;background:#fff;break-inside:avoid}.day-heading,.companion>div{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.day-section ul{margin:12px 0 0;padding:0;list-style:none}.day-section li{display:grid;gap:2px;padding:9px 0;border-top:1px solid #eee}.day-section li span,.day-section li small{color:#68758b}table{width:100%;border-collapse:collapse;background:#fff;font-size:.9rem}th,td{padding:8px;border:1px solid #e5d8ce;text-align:left;vertical-align:top}th{color:#35496b;background:#fff0f1}.embedded-photo{display:block;max-width:110px;max-height:110px;object-fit:contain;border-radius:12px;background:#f3f5f8}footer{margin-top:28px;color:#68758b;font-size:.8rem}@media print{body{padding:0;background:white}h2{break-after:avoid}}</style></head><body><main><header><h1>${escapeHtml(title)}</h1><p class="meta">目的地：${escapeHtml(trip?.destination ?? '')}　｜　${escapeHtml(trip?.startDate ?? '')} — ${escapeHtml(trip?.endDate ?? '')}</p><p class="meta">匯出時間：${escapeHtml(new Date().toLocaleString('zh-TW'))}</p></header><section><h2>每日行程</h2>${activitySections || '<p class="muted">尚未建立行程。</p>'}</section><section><h2>購物與準備</h2>${listSection}</section><section><h2>旅伴與聯絡資料</h2>${companionSection}</section><section><h2>旅行記帳</h2>${expenseSection}</section><footer>此文件由本機旅行規劃 APP 匯出，可在沒有網路的情況下閱讀。</footer></main></body></html>`
+  const title = trip?.title ?? documentLabel
+  const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}｜${escapeHtml(documentLabel)}</title><style>body{margin:0;padding:28px;color:#263244;background:#fffaf0;font:16px/1.6 system-ui,"Noto Sans TC",sans-serif}main{max-width:960px;margin:auto}h1{margin:0;color:#243b61;font-size:2rem}h2{margin:30px 0 12px;padding-bottom:6px;border-bottom:2px solid #ef8490;color:#243b61}h3{margin:0;color:#35496b}.meta,.muted{color:#68758b}.day-section,.companion{margin:12px 0;padding:16px;border:1px solid #e5d8ce;border-radius:16px;background:#fff;break-inside:avoid}.day-heading,.companion>div{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.day-section ul{margin:12px 0 0;padding:0;list-style:none}.day-section li{display:grid;gap:2px;padding:9px 0;border-top:1px solid #eee}.day-section li span,.day-section li small{color:#68758b}table{width:100%;border-collapse:collapse;background:#fff;font-size:.9rem}th,td{padding:8px;border:1px solid #e5d8ce;text-align:left;vertical-align:top}th{color:#35496b;background:#fff0f1}.embedded-photo{display:block;max-width:110px;max-height:110px;object-fit:contain;border-radius:12px;background:#f3f5f8}.embedded-illustration{display:inline-block;width:28px;height:28px;margin-right:6px;vertical-align:middle;object-fit:contain;border-radius:8px;background:#f3f5f8}footer{margin-top:28px;color:#68758b;font-size:.8rem}@media print{body{padding:0;background:white}h2{break-after:avoid}}</style></head><body><main><header><h1>${escapeHtml(title)}</h1><p class="meta">目的地：${escapeHtml(trip?.destination ?? '')}&nbsp;｜&nbsp;${escapeHtml(trip?.startDate ?? '')} — ${escapeHtml(trip?.endDate ?? '')}</p><p class="meta">匯出時間：${escapeHtml(new Date().toLocaleString('zh-TW'))}</p><p class="meta">文件類型：${escapeHtml(documentLabel)}</p></header><section><h2>每日行程</h2>${activitySections || '<p class="muted">尚未建立行程。</p>'}</section><section><h2>購物與準備</h2>${listSection}</section><section><h2>旅伴與聯絡資料</h2>${companionSection}</section><section><h2>旅行記帳</h2>${expenseSection}</section><footer>此${escapeHtml(documentLabel)}由本機旅行規劃 APP 匯出，可在沒有網路的情況下閱讀。</footer></main></body></html>`
   return new Blob([html], { type: 'text/html;charset=utf-8' })
+}
+
+export async function exportEmergencyHtml(): Promise<Blob> {
+  return exportHtmlSnapshot('旅行應急備份')
+}
+
+export async function exportItinerarySnapshotHtml(): Promise<Blob> {
+  return exportHtmlSnapshot('行程快照')
 }
 
 export async function exportEmergencyCsv(): Promise<Blob> {

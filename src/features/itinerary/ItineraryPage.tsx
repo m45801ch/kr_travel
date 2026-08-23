@@ -1,6 +1,7 @@
 import { CalendarDays, Plus } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { Activity, Trip, TripDay, WeatherSnapshot } from '../../domain/types'
+import type { Activity, Expense, Trip, TripDay, WeatherSnapshot } from '../../domain/types'
+import { ExpenseRepository } from '../../data/repositories/expenseRepository'
 import { TripRepository } from '../../data/repositories/tripRepository'
 import { ActivityCard } from './ActivityCard'
 import { ActivityForm } from './ActivityForm'
@@ -14,8 +15,11 @@ import { compressPhoto, deletePhoto, getPhoto, savePhoto } from '../lists/photoS
 import { getIllustration } from '../../assets/illustrations'
 import { geocodeDestination } from '../../integrations/weather/openMeteo'
 import { estimateRoute, type RouteEstimate } from './routeEstimate'
+import { TodaySummaryCard } from './TodaySummaryCard'
+import { selectTodaySummary } from './todaySummary'
 
 const repository = new TripRepository()
+const expenseRepository = new ExpenseRepository()
 const starterTrip: Trip = { id: 'trip-seoul-demo', title: '首爾小旅行', destination: '首爾', startDate: '2026-08-25', endDate: '2026-08-29', baseCurrency: 'TWD', budgetMinor: 5000000, illustrationId: 'hanbok-woman', themeColor: '#ef8490', active: true }
 
 function makeDays(trip: Trip): TripDay[] {
@@ -31,6 +35,7 @@ export function ItineraryPage() {
   const [days, setDays] = useState<TripDay[]>([])
   const [selectedDate, setSelectedDate] = useState('')
   const [activities, setActivities] = useState<Activity[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [weather, setWeather] = useState<WeatherSnapshot & { isStale?: boolean; updatedAt?: string }>()
   const [weatherError, setWeatherError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -47,7 +52,8 @@ export function ItineraryPage() {
   const [dayTitleDraft, setDayTitleDraft] = useState('')
   const [dayIllustrationDraft, setDayIllustrationDraft] = useState('hanbok-woman')
   const [dayPhotoIdDraft, setDayPhotoIdDraft] = useState<string>()
-  const [dayPhotoPreviewUrl, setDayPhotoPreviewUrl] = useState<string>()
+  const [dayPhotoLoaded, setDayPhotoLoaded] = useState<{ photoId: string; url: string }>()
+  const [dayPhotoEditPreviewUrl, setDayPhotoEditPreviewUrl] = useState<string>()
   const [routeEstimates, setRouteEstimates] = useState<Map<string, { nextStop: string; estimate: RouteEstimate }>>(new Map())
   const [draggingActivityId, setDraggingActivityId] = useState<string>()
   const [dragOverActivityId, setDragOverActivityId] = useState<string>()
@@ -64,20 +70,21 @@ export function ItineraryPage() {
   }, [days, editingDates, endDateDraft, startDateDraft, trip])
   const visibleSelectedDate = useMemo(() => visibleDays.some((day) => day.date === selectedDate) ? selectedDate : (visibleDays[0]?.date ?? selectedDate), [selectedDate, visibleDays])
   const selectedDay = useMemo(() => visibleDays.find((day) => day.date === visibleSelectedDate), [visibleDays, visibleSelectedDate])
+  const dayPhotoUrl = selectedDay?.photoId === dayPhotoLoaded?.photoId ? dayPhotoLoaded?.url : undefined
+  const visibleDayPhotoUrl = editingDay?.id === selectedDay?.id ? dayPhotoEditPreviewUrl : dayPhotoUrl
   const conflictIds = useMemo(() => findTimeConflictIds(activities), [activities])
   const dayIllustration = selectedDay ? getIllustration(selectedDay.illustrationId) : getIllustration('hanbok-woman')
+  const todaySummary = useMemo(() => trip ? selectTodaySummary({ trip, days: visibleDays, activities, expenses, referenceDate: visibleSelectedDate, weather }) : undefined, [activities, expenses, trip, visibleDays, visibleSelectedDate, weather])
 
   useEffect(() => {
     let cancelled = false
     let objectUrl: string | undefined
-    if (!selectedDay?.photoId) {
-      setDayPhotoPreviewUrl(undefined)
-      return
-    }
-    void getPhoto(selectedDay.photoId).then((blob) => {
+    const photoId = selectedDay?.photoId
+    if (!photoId) return
+    void getPhoto(photoId).then((blob) => {
       if (!blob || cancelled) return
       objectUrl = URL.createObjectURL(blob)
-      setDayPhotoPreviewUrl(objectUrl)
+      setDayPhotoLoaded({ photoId, url: objectUrl })
     })
     return () => {
       cancelled = true
@@ -102,7 +109,7 @@ export function ItineraryPage() {
 
   useEffect(() => {
     let cancelled = false
-    if (activities.length < 2) { setRouteEstimates(new Map()); return }
+    if (activities.length < 2) return
     void (async () => {
       const coordinates = await Promise.all(activities.map(async (activity) => {
         try { return await geocodeDestination(activity.address || activity.locationName || activity.title) } catch { return undefined }
@@ -126,7 +133,8 @@ export function ItineraryPage() {
       if (!currentTrip) { currentTrip = starterTrip; await repository.saveTrip(currentTrip) }
       let currentDays = await repository.listDays(currentTrip.id)
       if (currentDays.length === 0) { currentDays = makeDays(currentTrip); await Promise.all(currentDays.map((day) => repository.saveDay(day))) }
-      setTrip(currentTrip); setDays(currentDays); setSelectedDate(currentDays[0].date); setLoading(false)
+      const currentExpenses = await expenseRepository.listByTrip(currentTrip.id)
+      setTrip(currentTrip); setDays(currentDays); setExpenses(currentExpenses); setSelectedDate(currentDays[0].date); setLoading(false)
     })()
   }, [])
 
@@ -229,7 +237,7 @@ export function ItineraryPage() {
     setDayTitleDraft(day.title)
     setDayIllustrationDraft(day.illustrationId)
     setDayPhotoIdDraft(day.photoId)
-    setDayPhotoPreviewUrl(undefined)
+    setDayPhotoEditPreviewUrl(undefined)
     setEditingDay(day)
   }
   const uploadDayPhoto = async (file: File) => {
@@ -238,20 +246,22 @@ export function ItineraryPage() {
     const id = `${editingDay.id}-photo-${crypto.randomUUID()}`
     await savePhoto(id, blob)
     if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay.photoId) await deletePhoto(dayPhotoIdDraft)
-    if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl)
+    if (dayPhotoEditPreviewUrl) URL.revokeObjectURL(dayPhotoEditPreviewUrl)
     setDayPhotoIdDraft(id)
-    setDayPhotoPreviewUrl(URL.createObjectURL(blob))
+    setDayPhotoEditPreviewUrl(URL.createObjectURL(blob))
   }
   const cancelDayEdit = () => {
     if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay?.photoId) void deletePhoto(dayPhotoIdDraft)
-    if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl)
+    if (dayPhotoEditPreviewUrl) URL.revokeObjectURL(dayPhotoEditPreviewUrl)
+    setDayPhotoEditPreviewUrl(undefined)
     setEditingDay(undefined)
   }
   const saveDayTitle = async () => {
     if (!editingDay) return
     const next = { ...editingDay, title: dayTitleDraft.trim() || editingDay.title, illustrationId: dayIllustrationDraft, photoId: dayPhotoIdDraft }
     if (editingDay.photoId && editingDay.photoId !== next.photoId) await deletePhoto(editingDay.photoId)
-    if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl)
+    if (dayPhotoEditPreviewUrl) URL.revokeObjectURL(dayPhotoEditPreviewUrl)
+    setDayPhotoEditPreviewUrl(undefined)
     await repository.saveDay(next)
     setDays((current) => current.map((day) => (day.id === next.id ? next : day)))
     setEditingDay(undefined)
@@ -279,14 +289,15 @@ export function ItineraryPage() {
     </header>
     <DateStrip days={visibleDays} selectedDate={visibleSelectedDate} onSelect={setSelectedDate} />
     <WeatherCard key={selectedDay.id} weather={weather} error={weatherError} loading={weatherLoading} location={selectedWeatherLocation} countryCode={selectedDay.weatherCountryCode} cityQuery={selectedDay.weatherCityQuery} latitude={selectedDay.weatherLatitude} longitude={selectedDay.weatherLongitude} onSaveLocation={(selection) => void saveWeatherLocation(selection)} onRefresh={() => void loadWeather(trip, selectedDay.date, selectedWeatherQuery, selectedWeatherCoords)} />
+    {todaySummary && <TodaySummaryCard summary={todaySummary} currency={trip.baseCurrency} />}
     <section className="day-card">
       <div className="day-card-heading">
         {editingDay && editingDay.id === selectedDay.id
-          ? <div className="day-title-edit"><input className="inline-edit-input" value={dayTitleDraft} onChange={(event) => setDayTitleDraft(event.target.value)} aria-label="本日標題" /><IllustrationPicker value={dayIllustrationDraft} onChange={setDayIllustrationDraft} showLabel={false} /><label className="day-photo-upload">上傳本日照片<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadDayPhoto(file); event.currentTarget.value = '' }} /></label>{dayPhotoPreviewUrl && <div className="day-photo-preview"><img src={dayPhotoPreviewUrl} alt="本日照片預覽" /><button type="button" className="button-secondary compact" onClick={() => { if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay.photoId) void deletePhoto(dayPhotoIdDraft); if (dayPhotoPreviewUrl) URL.revokeObjectURL(dayPhotoPreviewUrl); setDayPhotoIdDraft(undefined); setDayPhotoPreviewUrl(undefined) }}>移除照片</button></div>}<div className="day-edit-actions"><button type="button" className="button-secondary compact" onClick={cancelDayEdit}>取消</button><button type="button" className="button-primary compact" onClick={() => void saveDayTitle()}>完成</button></div></div>
+          ? <div className="day-title-edit"><input className="inline-edit-input" value={dayTitleDraft} onChange={(event) => setDayTitleDraft(event.target.value)} aria-label="本日標題" /><IllustrationPicker value={dayIllustrationDraft} onChange={setDayIllustrationDraft} showLabel={false} /><label className="day-photo-upload">上傳本日照片<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadDayPhoto(file); event.currentTarget.value = '' }} /></label>{dayPhotoEditPreviewUrl && <div className="day-photo-preview"><img src={dayPhotoEditPreviewUrl} alt="本日照片預覽" /><button type="button" className="button-secondary compact" onClick={() => { if (dayPhotoIdDraft && dayPhotoIdDraft !== editingDay.photoId) void deletePhoto(dayPhotoIdDraft); if (dayPhotoEditPreviewUrl) URL.revokeObjectURL(dayPhotoEditPreviewUrl); setDayPhotoIdDraft(undefined); setDayPhotoEditPreviewUrl(undefined) }}>移除照片</button></div>}<div className="day-edit-actions"><button type="button" className="button-secondary compact" onClick={cancelDayEdit}>取消</button><button type="button" className="button-primary compact" onClick={() => void saveDayTitle()}>完成</button></div></div>
           : <div className="editable" role="button" tabIndex={0} onClick={() => startEditDay(selectedDay)} onKeyDown={(event) => { if (event.key === 'Enter') startEditDay(selectedDay) }} aria-label="點擊編輯本日標題">
               <div><span className="day-kicker">{new Date(`${selectedDay.date}T00:00:00`).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })}</span><h2>{selectedDay.title}</h2><p>{selectedDay.summary}</p></div>
             </div>}
-        <div className="day-card-heading-actions"><button className="day-illustration-button" type="button" aria-label="編輯本日圖案與照片" title="編輯本日圖案與照片" onClick={() => startEditDay(selectedDay)}><span className="day-illustration" aria-hidden="true">{dayPhotoPreviewUrl ? <img src={dayPhotoPreviewUrl} alt="" /> : dayIllustration.imageUrl ? <img src={dayIllustration.imageUrl} alt="" /> : dayIllustration.emoji}</span></button></div>
+        <div className="day-card-heading-actions"><button className="day-illustration-button" type="button" aria-label="編輯本日圖案與照片" title="編輯本日圖案與照片" onClick={() => startEditDay(selectedDay)}><span className="day-illustration" aria-hidden="true">{visibleDayPhotoUrl ? <img src={visibleDayPhotoUrl} alt="" /> : dayIllustration.imageUrl ? <img src={dayIllustration.imageUrl} alt="" /> : dayIllustration.emoji}</span></button></div>
       </div>
       <div className="activity-list">{activities.length ? activities.map((activity, index) => <div className={`activity-entry${draggingActivityId === activity.id ? ' is-dragging' : ''}${dragOverActivityId === activity.id ? ' is-drag-over' : ''}`} key={activity.id} onPointerDown={() => startLongPress(activity.id)} onPointerUp={() => { if (draggingActivityId && dragOverActivityId) void reorderActivity(draggingActivityId, dragOverActivityId); endLongPress() }} onPointerCancel={endLongPress} onPointerEnter={() => { if (draggingActivityId && draggingActivityId !== activity.id) setDragOverActivityId(activity.id) }}><p className="activity-drag-hint" aria-hidden="true">長按拖曳排序</p>{conflictIds.has(activity.id) && <p className="activity-conflict" role="status">時間與其他行程重疊</p>}<ActivityCard activity={activity} nextStop={routeEstimates.get(activity.id)?.nextStop ?? activities[index + 1]?.title} routeEstimate={routeEstimates.get(activity.id)?.estimate} onMoveUp={index > 0 && activities[index - 1].time === activity.time ? () => void moveActivity(activity.id, -1) : undefined} onMoveDown={index < activities.length - 1 && activities[index + 1].time === activity.time ? () => void moveActivity(activity.id, 1) : undefined} onEdit={(id) => { if (suppressEditRef.current) { suppressEditRef.current = false; return } const found = activities.find((a) => a.id === id); if (found) { setEditingActivity(found); setShowForm(true) } }} /></div>) : <div className="empty-activities">今天還沒有安排,從一個喜歡的地方開始吧。</div>}</div>
       <button className="add-activity-button" type="button" onClick={() => { setEditingActivity(undefined); setShowForm(true) }}><Plus size={18} />新增活動</button>

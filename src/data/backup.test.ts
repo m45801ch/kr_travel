@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { unzipSync, strFromU8 } from 'fflate'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { db } from './db'
-import { exportBackup, exportEmergencyCsv, exportEmergencyHtml, exportEmergencyPackage, importBackup } from './backup'
+import { exportBackup, exportEmergencyCsv, exportEmergencyHtml, exportEmergencyPackage, exportItinerarySnapshotHtml, importBackup } from './backup'
 
 afterEach(async () => { vi.restoreAllMocks(); await Promise.all(db.tables.map((table) => table.clear())) })
 
@@ -55,7 +55,7 @@ describe('backup', () => {
   it('exports a readable offline HTML file with travel data and embedded photos', async () => {
     await db.trips.put({ id: 'trip-1', title: '東京小旅行', destination: '東京', startDate: '2026-08-25', endDate: '2026-08-29', baseCurrency: 'TWD', budgetMinor: 1000, illustrationId: 'hanbok-woman', themeColor: '#ef8490', active: true })
     await db.days.put({ id: 'day-1', tripId: 'trip-1', date: '2026-08-25', city: '東京', title: 'Day 1 抵達', summary: '抵達東京', accommodation: '', illustrationId: 'hanbok-woman', photoId: 'day-photo' })
-    await db.activities.put({ id: 'activity-1', tripId: 'trip-1', dayId: 'day-1', date: '2026-08-25', time: '10:00', type: 'spot', title: '淺草寺', locationName: '淺草', address: '', googleMapsUrl: '', notes: '', order: 0, illustrationId: 'namsan-tower' })
+    await db.activities.put({ id: 'activity-1', tripId: 'trip-1', dayId: 'day-1', date: '2026-08-25', time: '10:00', type: 'spot', title: '淺草寺', locationName: '淺草', address: '', googleMapsUrl: '', notes: '避開人潮', order: 0, illustrationId: 'namsan-tower' })
     await db.members.put({ id: 'member-1', tripId: 'trip-1', name: '小美', color: '#ef8490', illustrationId: 'companion-girl', notes: '', lineAddUrl: 'https://line.me/R/ti/p/example', photoId: 'member-photo', lineQrPhotoId: 'qr-photo' })
     await db.listItems.put({ id: 'list-1', tripId: 'trip-1', type: 'shopping', name: '伴手禮', category: '購物', note: '抹茶', priority: 'normal', location: '東京車站', illustrationId: 'shopping-bag', completed: false, order: 0 })
     await db.expenses.put({ id: 'expense-1', tripId: 'trip-1', date: '2026-08-25', amountMinor: 1200, currency: 'JPY', exchangeRateToBase: 0.22, baseAmountMinor: 264, conversionCurrency: 'TWD', conversionRate: 0.22, convertedAmountMinor: 264, category: '美食', payerId: 'member-1', paymentMethod: 'credit-card', splitMode: 'equal', notes: '拉麵' })
@@ -66,6 +66,7 @@ describe('backup', () => {
     ]
     vi.spyOn(db.photos, 'toArray').mockResolvedValue(photos)
 
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new Blob(['illustration'], { type: 'image/webp' }), { status: 200 }))
     const html = await exportEmergencyHtml()
     const content = await html.text()
     expect(content).toContain('東京小旅行')
@@ -75,6 +76,21 @@ describe('backup', () => {
     expect(content).toContain('拉麵')
     expect(content).toContain('data:image/png;base64,')
     expect(content).toContain('data:image/jpeg;base64,')
+    expect(content).toMatch(/class="embedded-illustration" src="data:/)
+
+    const countsBefore = await Promise.all(db.tables.map((table) => table.count()))
+    const snapshot = await exportItinerarySnapshotHtml()
+    const snapshotContent = await snapshot.text()
+    const countsAfter = await Promise.all(db.tables.map((table) => table.count()))
+    expect(snapshot.type).toBe('text/html;charset=utf-8')
+    expect(snapshotContent).toContain('<title>東京小旅行｜行程快照</title>')
+    expect(snapshotContent).toContain('文件類型：行程快照')
+    expect(snapshotContent).toContain('2026-08-25')
+    expect(snapshotContent).toContain('10:00')
+    expect(snapshotContent).toContain('淺草')
+    expect(snapshotContent).toContain('避開人潮')
+    expect(snapshotContent).toMatch(/class="embedded-illustration" src="data:[^"]+;base64,/)
+    expect(countsAfter).toEqual(countsBefore)
   })
 
   it('exports CSV with escaped commas, quotes, and line breaks', async () => {
