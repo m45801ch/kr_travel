@@ -1,5 +1,5 @@
 import { ChevronDown, RotateCcw, Shuffle } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../data/db'
 import { getIllustration, type IllustrationOption } from '../assets/illustrations'
@@ -13,10 +13,12 @@ interface IllustrationPickerProps {
   onChange: (id: string) => void
   categories?: IllustrationCategory[]
   showLabel?: boolean
+  defaultCategory?: IllustrationCategory
+  categoryResetKey?: string | number
 }
 
-export function IllustrationPicker({ value, onChange, categories, showLabel = true }: IllustrationPickerProps) {
-  const [category, setCategory] = useState<'全部' | IllustrationCategory>('全部')
+export function IllustrationPicker({ value, onChange, categories, showLabel = true, defaultCategory, categoryResetKey }: IllustrationPickerProps) {
+  const [userCategory, setUserCategory] = useState<'全部' | IllustrationCategory | null>(null)
   const overrides = useLiveQuery(() => db.illustrationOverrides.toArray(), [], [])
   const categoryConfigs = useLiveQuery(() => db.categoryConfigs.toArray(), [], [])
   const overridesMap = Object.fromEntries((overrides ?? []).map((o) => [o.id, o]))
@@ -35,10 +37,15 @@ export function IllustrationPicker({ value, onChange, categories, showLabel = tr
     }
     return m
   }, [categoryMap])
-  const effectiveCategory = categoryToOriginal.get(category) ?? (category as IllustrationCategory)
-  const options = useMemo(() => catalog.filter((item) => category === '全部' || item.category === effectiveCategory), [catalog, category, effectiveCategory])
+  const selectedCategory = userCategory ?? (categories?.length === 1 ? categories[0] : defaultCategory ?? '全部')
+  const effectiveCategory = categoryToOriginal.get(selectedCategory) ?? (selectedCategory as IllustrationCategory)
+  const options = useMemo(() => catalog.filter((item) => selectedCategory === '全部' || item.category === effectiveCategory), [catalog, selectedCategory, effectiveCategory])
   const selected = useMemo(() => catalog.find((i) => i.id === value) ?? getIllustration(value), [catalog, value])
   const randomize = () => onChange(options[Math.floor(Math.random() * options.length)]?.id ?? selected.id)
+
+  useEffect(() => {
+    setUserCategory(null)
+  }, [categoryResetKey, defaultCategory])
 
   return (
     <section className="illustration-picker" aria-label="選擇圖案">
@@ -53,7 +60,7 @@ export function IllustrationPicker({ value, onChange, categories, showLabel = tr
             {['全部', ...allowed].map((item) => {
               const orig = categoryToOriginal.get(item) ?? (item as IllustrationCategory)
               const font = categoryMap[orig as string]?.fontFamily
-              return <button className={category === item ? 'picker-tab is-active' : 'picker-tab'} key={item} type="button" role="tab" aria-selected={category === item} onClick={() => setCategory(item as '全部' | IllustrationCategory)} style={{ fontFamily: font || undefined }}>{item}</button>
+              return <button className={selectedCategory === item ? 'picker-tab is-active' : 'picker-tab'} key={item} type="button" role="tab" aria-selected={selectedCategory === item} onClick={() => setUserCategory(item as '全部' | IllustrationCategory)} style={{ fontFamily: font || undefined }}>{item}</button>
             })}
           </div>
           <div className="illustration-grid">

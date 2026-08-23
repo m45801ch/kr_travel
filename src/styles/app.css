@@ -1,5 +1,6 @@
 @import './tokens.css';
 
+html { font-size: 14px; }
 .app-shell { min-height: 100dvh; padding: 20px 18px calc(108px + env(safe-area-inset-bottom)); }
 .app-content { width: min(100%, 720px); margin: 0 auto; }
 .sakura-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 4; }

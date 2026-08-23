@@ -10,6 +10,11 @@ function Harness() {
 }
 
 describe('IllustrationPicker', () => {
+  it('uses the supplied default category', () => {
+    render(<IllustrationPicker value="namsan-tower" onChange={() => {}} defaultCategory="景點" />)
+    expect(screen.getByRole('tab', { name: '景點' })).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('keeps the illustration browser collapsed by default', async () => {
     const user = userEvent.setup()
     render(<Harness />)

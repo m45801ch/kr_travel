@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const key = process.env.VITE_LABNANA_API_KEY || 'lh_sk_69eaf4c594d32d8cbd2b725f_f29f1b23b65aca26014f3daa9d199d2fcef8f03e589fcfcd'
+const key = process.env.LABNANA_API_KEY || process.env.VITE_LABNANA_API_KEY
+if (!key) throw new Error('請先設定 LABNANA_API_KEY 或 VITE_LABNANA_API_KEY')
 const baseUrl = process.env.VITE_LABNANA_BASE_URL || 'https://api.labnana.com'
 
 // 參照原本可愛風格：圓潤、柔和色調、扁平插畫、白色背景、韓系可愛

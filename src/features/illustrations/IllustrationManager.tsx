@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown, GripVertical, Pencil, Check, X } from 'lucide-react'
+import { ChevronDown, Download, GripVertical, Pencil, Check, X } from 'lucide-react'
 import { db } from '../../data/db'
 import { illustrationCatalog as staticCatalog, illustrationCategories, type IllustrationCategory } from '../../assets/illustrations'
 import { mergeCatalog, upsertCategoryConfig, upsertIllustrationOverride } from './illustrationStore'
+import { exportIllustrationSettings } from './illustrationSettings'
 
 const fontOptions = [
   { label: '預設', value: '' },
@@ -23,6 +24,7 @@ export function IllustrationManager() {
   const [editingCategory, setEditingCategory] = useState<IllustrationCategory | null>(null)
   const [categoryEditLabel, setCategoryEditLabel] = useState('')
   const [categoryFont, setCategoryFont] = useState('')
+  const [exportStatus, setExportStatus] = useState('')
 
   const overridesMap = Object.fromEntries((overrides ?? []).map((o) => [o.id, o]))
   const categoryMap = Object.fromEntries((categoryConfigs ?? []).map((c) => [c.category, c]))
@@ -93,6 +95,17 @@ export function IllustrationManager() {
     setDragId(null)
   }
 
+  const exportSettings = async () => {
+    const blob = await exportIllustrationSettings()
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `illustration-settings-${new Date().toISOString().slice(0, 10)}.json`
+    anchor.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    setExportStatus('已匯出目前圖案分類與名稱設定。')
+  }
+
   return (
     <details className="settings-card illustration-manager">
       <summary className="illustration-manager-summary">
@@ -101,6 +114,8 @@ export function IllustrationManager() {
       </summary>
       <div className="illustration-manager-content">
         <p>拖曳卡片可移動至其他分類，點擊名稱可改名，分類標題可改字型與名稱（修正分類錯誤）</p>
+        <button type="button" className="button-secondary" onClick={() => void exportSettings()}><Download size={16} />匯出目前圖案設定</button>
+        {exportStatus && <p className="backup-status" role="status">{exportStatus}</p>}
 
       {Array.from(grouped.entries()).map(([category, items]) => {
         const config = categoryMap[category]
