@@ -58,6 +58,36 @@ import gen_travel_25 from './illustrations/generated/travel-25.webp'
 import gen_travel_26 from './illustrations/generated/travel-26.webp'
 import gen_travel_27 from './illustrations/generated/travel-27.webp'
 import gen_travel_28 from './illustrations/generated/travel-28.webp'
+import landmark_01_beijing_forbidden_city from './illustrations/generated/landmarks/beijing-forbidden-city.webp'
+import landmark_02_great_wall_of_china from './illustrations/generated/landmarks/great-wall-of-china.webp'
+import landmark_03_shanghai_bund from './illustrations/generated/landmarks/shanghai-bund.webp'
+import landmark_04_tokyo_tower from './illustrations/generated/landmarks/tokyo-tower.webp'
+import landmark_05_mount_fuji from './illustrations/generated/landmarks/mount-fuji.webp'
+import landmark_06_kiyomizu_dera from './illustrations/generated/landmarks/kiyomizu-dera.webp'
+import landmark_07_fushimi_inari_taisha from './illustrations/generated/landmarks/fushimi-inari-taisha.webp'
+import landmark_08_gyeongbokgung_palace from './illustrations/generated/landmarks/gyeongbokgung-palace.webp'
+import landmark_09_n_seoul_tower from './illustrations/generated/landmarks/n-seoul-tower.webp'
+import landmark_10_gwangan_bridge from './illustrations/generated/landmarks/gwangan-bridge.webp'
+import landmark_11_taipei_101 from './illustrations/generated/landmarks/taipei-101.webp'
+import landmark_12_tian_tan_buddha from './illustrations/generated/landmarks/tian-tan-buddha.webp'
+import landmark_13_marina_bay_sands from './illustrations/generated/landmarks/marina-bay-sands.webp'
+import landmark_14_petronas_twin_towers from './illustrations/generated/landmarks/petronas-twin-towers.webp'
+import landmark_15_grand_palace_bangkok from './illustrations/generated/landmarks/grand-palace-bangkok.webp'
+import landmark_16_angkor_wat from './illustrations/generated/landmarks/angkor-wat.webp'
+import landmark_17_bayon_temple from './illustrations/generated/landmarks/bayon-temple.webp'
+import landmark_18_saigon_central_post_office from './illustrations/generated/landmarks/saigon-central-post-office.webp'
+import landmark_19_hoi_an_ancient_town from './illustrations/generated/landmarks/hoi-an-ancient-town.webp'
+import landmark_20_borobudur_temple from './illustrations/generated/landmarks/borobudur-temple.webp'
+import landmark_21_san_agustin_church from './illustrations/generated/landmarks/san-agustin-church.webp'
+import landmark_22_taj_mahal from './illustrations/generated/landmarks/taj-mahal.webp'
+import landmark_23_golden_temple_amritsar from './illustrations/generated/landmarks/golden-temple-amritsar.webp'
+import landmark_24_petra from './illustrations/generated/landmarks/petra.webp'
+import landmark_25_burj_khalifa from './illustrations/generated/landmarks/burj-khalifa.webp'
+import landmark_26_sheikh_zayed_grand_mosque from './illustrations/generated/landmarks/sheikh-zayed-grand-mosque.webp'
+import landmark_27_registan_square from './illustrations/generated/landmarks/registan-square.webp'
+import landmark_28_potala_palace from './illustrations/generated/landmarks/potala-palace.webp'
+import landmark_29_hagia_sophia from './illustrations/generated/landmarks/hagia-sophia.webp'
+import landmark_30_doi_suthep from './illustrations/generated/landmarks/doi-suthep.webp'
 
 export type IllustrationCategory = '人物' | '服裝' | '配件' | '旅遊' | '美食' | '住宿' | '交通' | '景點'
 
@@ -91,6 +121,36 @@ export const illustrationCatalog: IllustrationOption[] = [
   { id: 'transit-subway', label: '可愛地鐵', category: '交通', accent: '#78bda7', emoji: '🚆', imageUrl: transitSubwayImage },
   { id: 'gyeongbokgung-palace', label: '景福宮', category: '景點', accent: '#ef8490', emoji: '🏯', imageUrl: gyeongbokgungPalaceImage },
   { id: 'namsan-tower', label: '南山塔', category: '景點', accent: '#8ba9d6', emoji: '🗼', imageUrl: namsanTowerImage },
+  { id: 'landmark-01-beijing-forbidden-city', label: '北京故宮', category: '景點', accent: '#f5a0aa', emoji: '🏯', imageUrl: landmark_01_beijing_forbidden_city },
+  { id: 'landmark-02-great-wall-of-china', label: '萬里長城', category: '景點', accent: '#8ba9d6', emoji: '🧱', imageUrl: landmark_02_great_wall_of_china },
+  { id: 'landmark-03-shanghai-bund', label: '上海外灘', category: '景點', accent: '#78bda7', emoji: '🌆', imageUrl: landmark_03_shanghai_bund },
+  { id: 'landmark-04-tokyo-tower', label: '東京鐵塔', category: '景點', accent: '#b19bd4', emoji: '🗼', imageUrl: landmark_04_tokyo_tower },
+  { id: 'landmark-05-mount-fuji', label: '富士山', category: '景點', accent: '#f4c768', emoji: '🗻', imageUrl: landmark_05_mount_fuji },
+  { id: 'landmark-06-kiyomizu-dera', label: '清水寺', category: '景點', accent: '#ef8490', emoji: '⛩️', imageUrl: landmark_06_kiyomizu_dera },
+  { id: 'landmark-07-fushimi-inari-taisha', label: '伏見稻荷大社', category: '景點', accent: '#f5a0aa', emoji: '⛩️', imageUrl: landmark_07_fushimi_inari_taisha },
+  { id: 'landmark-08-gyeongbokgung-palace', label: '首爾景福宮', category: '景點', accent: '#8ba9d6', emoji: '🏯', imageUrl: landmark_08_gyeongbokgung_palace },
+  { id: 'landmark-09-n-seoul-tower', label: '首爾塔', category: '景點', accent: '#78bda7', emoji: '🗼', imageUrl: landmark_09_n_seoul_tower },
+  { id: 'landmark-10-gwangan-bridge', label: '廣安大橋', category: '景點', accent: '#b19bd4', emoji: '🌉', imageUrl: landmark_10_gwangan_bridge },
+  { id: 'landmark-11-taipei-101', label: '台北101', category: '景點', accent: '#f4c768', emoji: '🏙️', imageUrl: landmark_11_taipei_101 },
+  { id: 'landmark-12-tian-tan-buddha', label: '天壇大佛', category: '景點', accent: '#ef8490', emoji: '🙏', imageUrl: landmark_12_tian_tan_buddha },
+  { id: 'landmark-13-marina-bay-sands', label: '濱海灣金沙', category: '景點', accent: '#f5a0aa', emoji: '🏙️', imageUrl: landmark_13_marina_bay_sands },
+  { id: 'landmark-14-petronas-twin-towers', label: '雙子星塔', category: '景點', accent: '#8ba9d6', emoji: '🏢', imageUrl: landmark_14_petronas_twin_towers },
+  { id: 'landmark-15-grand-palace-bangkok', label: '曼谷大皇宮', category: '景點', accent: '#78bda7', emoji: '🏛️', imageUrl: landmark_15_grand_palace_bangkok },
+  { id: 'landmark-16-angkor-wat', label: '吳哥窟', category: '景點', accent: '#b19bd4', emoji: '🛕', imageUrl: landmark_16_angkor_wat },
+  { id: 'landmark-17-bayon-temple', label: '巴戎寺', category: '景點', accent: '#f4c768', emoji: '🗿', imageUrl: landmark_17_bayon_temple },
+  { id: 'landmark-18-saigon-central-post-office', label: '西貢中央郵局', category: '景點', accent: '#ef8490', emoji: '🏤', imageUrl: landmark_18_saigon_central_post_office },
+  { id: 'landmark-19-hoi-an-ancient-town', label: '會安古城', category: '景點', accent: '#f5a0aa', emoji: '🏮', imageUrl: landmark_19_hoi_an_ancient_town },
+  { id: 'landmark-20-borobudur-temple', label: '婆羅浮屠', category: '景點', accent: '#8ba9d6', emoji: '🛕', imageUrl: landmark_20_borobudur_temple },
+  { id: 'landmark-21-san-agustin-church', label: '聖奧古斯丁教堂', category: '景點', accent: '#78bda7', emoji: '⛪', imageUrl: landmark_21_san_agustin_church },
+  { id: 'landmark-22-taj-mahal', label: '泰姬陵', category: '景點', accent: '#b19bd4', emoji: '🕌', imageUrl: landmark_22_taj_mahal },
+  { id: 'landmark-23-golden-temple-amritsar', label: '阿姆利則金寺', category: '景點', accent: '#f4c768', emoji: '🛕', imageUrl: landmark_23_golden_temple_amritsar },
+  { id: 'landmark-24-petra', label: '佩特拉古城', category: '景點', accent: '#ef8490', emoji: '🏛️', imageUrl: landmark_24_petra },
+  { id: 'landmark-25-burj-khalifa', label: '哈里發塔', category: '景點', accent: '#f5a0aa', emoji: '🏙️', imageUrl: landmark_25_burj_khalifa },
+  { id: 'landmark-26-sheikh-zayed-grand-mosque', label: '謝赫扎耶德大清真寺', category: '景點', accent: '#8ba9d6', emoji: '🕌', imageUrl: landmark_26_sheikh_zayed_grand_mosque },
+  { id: 'landmark-27-registan-square', label: '雷吉斯坦廣場', category: '景點', accent: '#78bda7', emoji: '🕌', imageUrl: landmark_27_registan_square },
+  { id: 'landmark-28-potala-palace', label: '布達拉宮', category: '景點', accent: '#b19bd4', emoji: '🏯', imageUrl: landmark_28_potala_palace },
+  { id: 'landmark-29-hagia-sophia', label: '聖索菲亞大教堂', category: '景點', accent: '#f4c768', emoji: '🕌', imageUrl: landmark_29_hagia_sophia },
+  { id: 'landmark-30-doi-suthep', label: '素帖寺', category: '景點', accent: '#ef8490', emoji: '🛕', imageUrl: landmark_30_doi_suthep },
   { id: 'gen-acc-15', label: '收提包', category: '配件', accent: '#f4c768', emoji: '👜', imageUrl: gen_acc_15 },
   { id: 'gen-acc-16', label: '專業相機', category: '配件', accent: '#f4c768', emoji: '👜', imageUrl: gen_acc_16 },
   { id: 'gen-acc-17', label: '行李箱', category: '配件', accent: '#f4c768', emoji: '👜', imageUrl: gen_acc_17 },

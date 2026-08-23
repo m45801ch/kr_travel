@@ -17,4 +17,12 @@ describe('圖案預設設定', () => {
     expect(find('food')).toMatchObject({ category: '美食' })
     expect(find('transit')).toMatchObject({ category: '交通' })
   })
+
+  it('包含完整的 30 個亞洲景點圖示', () => {
+    const landmarks = illustrationCatalog.filter((item) => item.id.startsWith('landmark-'))
+
+    expect(landmarks).toHaveLength(30)
+    expect(new Set(landmarks.map((item) => item.label)).size).toBe(30)
+    expect(landmarks.every((item) => item.category === '景點' && item.imageUrl)).toBe(true)
+  })
 })
