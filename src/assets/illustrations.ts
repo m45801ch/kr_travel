@@ -88,6 +88,36 @@ import landmark_27_registan_square from './illustrations/generated/landmarks/reg
 import landmark_28_potala_palace from './illustrations/generated/landmarks/potala-palace.webp'
 import landmark_29_hagia_sophia from './illustrations/generated/landmarks/hagia-sophia.webp'
 import landmark_30_doi_suthep from './illustrations/generated/landmarks/doi-suthep.webp'
+import service_01_airport_terminal from './illustrations/generated/services/airport-terminal.webp'
+import service_02_airport_shuttle from './illustrations/generated/services/airport-shuttle.webp'
+import service_03_ktx_train from './illustrations/generated/services/ktx-train.webp'
+import service_04_subway_exit from './illustrations/generated/services/subway-exit.webp'
+import service_05_bus_stop from './illustrations/generated/services/bus-stop.webp'
+import service_06_taxi from './illustrations/generated/services/taxi.webp'
+import service_07_convenience_store from './illustrations/generated/services/convenience-store.webp'
+import service_08_tourist_information from './illustrations/generated/services/tourist-information.webp'
+import service_09_ticket_counter from './illustrations/generated/services/ticket-counter.webp'
+import service_10_luggage_storage from './illustrations/generated/services/luggage-storage.webp'
+import service_11_wifi_hotspot from './illustrations/generated/services/wifi-hotspot.webp'
+import service_12_sim_esim from './illustrations/generated/services/sim-esim.webp'
+import service_13_pharmacy from './illustrations/generated/services/pharmacy.webp'
+import service_14_hospital from './illustrations/generated/services/hospital.webp'
+import service_15_police_station from './illustrations/generated/services/police-station.webp'
+import service_16_first_aid_kit from './illustrations/generated/services/first-aid-kit.webp'
+import service_17_restroom from './illustrations/generated/services/restroom.webp'
+import service_18_lost_and_found from './illustrations/generated/services/lost-and-found.webp'
+import service_19_traditional_market from './illustrations/generated/services/traditional-market.webp'
+import service_20_supermarket from './illustrations/generated/services/supermarket.webp'
+import service_21_duty_free_store from './illustrations/generated/services/duty-free-store.webp'
+import service_22_cafe from './illustrations/generated/services/cafe.webp'
+import service_23_night_market from './illustrations/generated/services/night-market.webp'
+import service_24_photo_booth from './illustrations/generated/services/photo-booth.webp'
+import service_25_korean_beach from './illustrations/generated/services/korean-beach.webp'
+import service_26_hiking_trail from './illustrations/generated/services/hiking-trail.webp'
+import service_27_observatory_deck from './illustrations/generated/services/observatory-deck.webp'
+import service_28_cherry_blossom_park from './illustrations/generated/services/cherry-blossom-park.webp'
+import service_29_museum from './illustrations/generated/services/museum.webp'
+import service_30_hanbok_experience from './illustrations/generated/services/hanbok-experience.webp'
 
 export type IllustrationCategory = '人物' | '服裝' | '配件' | '旅遊' | '美食' | '住宿' | '交通' | '景點'
 
@@ -151,6 +181,36 @@ export const illustrationCatalog: IllustrationOption[] = [
   { id: 'landmark-28-potala-palace', label: '布達拉宮', category: '景點', accent: '#b19bd4', emoji: '🏯', imageUrl: landmark_28_potala_palace },
   { id: 'landmark-29-hagia-sophia', label: '聖索菲亞大教堂', category: '景點', accent: '#f4c768', emoji: '🕌', imageUrl: landmark_29_hagia_sophia },
   { id: 'landmark-30-doi-suthep', label: '素帖寺', category: '景點', accent: '#ef8490', emoji: '🛕', imageUrl: landmark_30_doi_suthep },
+  { id: 'service-01-airport-terminal', label: '機場航廈', category: '交通', accent: '#8ba9d6', emoji: '✈️', imageUrl: service_01_airport_terminal },
+  { id: 'service-02-airport-shuttle', label: '機場接駁', category: '交通', accent: '#78bda7', emoji: '🚌', imageUrl: service_02_airport_shuttle },
+  { id: 'service-03-ktx-train', label: 'KTX 高速列車', category: '交通', accent: '#f4c768', emoji: '🚄', imageUrl: service_03_ktx_train },
+  { id: 'service-04-subway-exit', label: '地鐵出口', category: '交通', accent: '#ef8490', emoji: '🚇', imageUrl: service_04_subway_exit },
+  { id: 'service-05-bus-stop', label: '公車站牌', category: '交通', accent: '#f5a0aa', emoji: '🚏', imageUrl: service_05_bus_stop },
+  { id: 'service-06-taxi', label: '計程車', category: '交通', accent: '#b19bd4', emoji: '🚕', imageUrl: service_06_taxi },
+  { id: 'service-07-convenience-store', label: '便利商店', category: '旅遊', accent: '#8ba9d6', emoji: '🏪', imageUrl: service_07_convenience_store },
+  { id: 'service-08-tourist-information', label: '旅客服務中心', category: '旅遊', accent: '#78bda7', emoji: 'ℹ️', imageUrl: service_08_tourist_information },
+  { id: 'service-09-ticket-counter', label: '售票櫃檯', category: '旅遊', accent: '#f4c768', emoji: '🎫', imageUrl: service_09_ticket_counter },
+  { id: 'service-10-luggage-storage', label: '行李寄放', category: '旅遊', accent: '#ef8490', emoji: '🧳', imageUrl: service_10_luggage_storage },
+  { id: 'service-11-wifi-hotspot', label: 'Wi-Fi 熱點', category: '旅遊', accent: '#f5a0aa', emoji: '📶', imageUrl: service_11_wifi_hotspot },
+  { id: 'service-12-sim-esim', label: 'SIM 卡／eSIM', category: '旅遊', accent: '#b19bd4', emoji: '📱', imageUrl: service_12_sim_esim },
+  { id: 'service-13-pharmacy', label: '藥局', category: '旅遊', accent: '#8ba9d6', emoji: '💊', imageUrl: service_13_pharmacy },
+  { id: 'service-14-hospital', label: '醫院', category: '旅遊', accent: '#78bda7', emoji: '🏥', imageUrl: service_14_hospital },
+  { id: 'service-15-police-station', label: '警察局', category: '旅遊', accent: '#f4c768', emoji: '👮', imageUrl: service_15_police_station },
+  { id: 'service-16-first-aid-kit', label: '急救箱', category: '旅遊', accent: '#ef8490', emoji: '🩹', imageUrl: service_16_first_aid_kit },
+  { id: 'service-17-restroom', label: '洗手間', category: '旅遊', accent: '#f5a0aa', emoji: '🚻', imageUrl: service_17_restroom },
+  { id: 'service-18-lost-and-found', label: '失物招領', category: '旅遊', accent: '#b19bd4', emoji: '🧳', imageUrl: service_18_lost_and_found },
+  { id: 'service-19-traditional-market', label: '傳統市場', category: '美食', accent: '#8ba9d6', emoji: '🛒', imageUrl: service_19_traditional_market },
+  { id: 'service-20-supermarket', label: '超市', category: '旅遊', accent: '#78bda7', emoji: '🛒', imageUrl: service_20_supermarket },
+  { id: 'service-21-duty-free-store', label: '免稅店', category: '旅遊', accent: '#f4c768', emoji: '🛍️', imageUrl: service_21_duty_free_store },
+  { id: 'service-22-cafe', label: '咖啡廳', category: '美食', accent: '#ef8490', emoji: '☕', imageUrl: service_22_cafe },
+  { id: 'service-23-night-market', label: '夜市', category: '美食', accent: '#f5a0aa', emoji: '🏮', imageUrl: service_23_night_market },
+  { id: 'service-24-photo-booth', label: '拍貼機', category: '旅遊', accent: '#b19bd4', emoji: '📸', imageUrl: service_24_photo_booth },
+  { id: 'service-25-korean-beach', label: '韓國海灘', category: '景點', accent: '#8ba9d6', emoji: '🏖️', imageUrl: service_25_korean_beach },
+  { id: 'service-26-hiking-trail', label: '登山步道', category: '景點', accent: '#78bda7', emoji: '🥾', imageUrl: service_26_hiking_trail },
+  { id: 'service-27-observatory-deck', label: '觀景台', category: '景點', accent: '#f4c768', emoji: '🔭', imageUrl: service_27_observatory_deck },
+  { id: 'service-28-cherry-blossom-park', label: '櫻花公園', category: '景點', accent: '#ef8490', emoji: '🌸', imageUrl: service_28_cherry_blossom_park },
+  { id: 'service-29-museum', label: '博物館', category: '景點', accent: '#f5a0aa', emoji: '🏛️', imageUrl: service_29_museum },
+  { id: 'service-30-hanbok-experience', label: '韓服體驗', category: '服裝', accent: '#b19bd4', emoji: '👘', imageUrl: service_30_hanbok_experience },
   { id: 'gen-acc-15', label: '收提包', category: '配件', accent: '#f4c768', emoji: '👜', imageUrl: gen_acc_15 },
   { id: 'gen-acc-16', label: '專業相機', category: '配件', accent: '#f4c768', emoji: '👜', imageUrl: gen_acc_16 },
   { id: 'gen-acc-17', label: '行李箱', category: '配件', accent: '#f4c768', emoji: '👜', imageUrl: gen_acc_17 },

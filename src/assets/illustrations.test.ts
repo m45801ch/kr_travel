@@ -25,4 +25,15 @@ describe('圖案預設設定', () => {
     expect(new Set(landmarks.map((item) => item.label)).size).toBe(30)
     expect(landmarks.every((item) => item.category === '景點' && item.imageUrl)).toBe(true)
   })
+
+  it('包含完整的 30 個韓國旅途服務圖示', () => {
+    const services = illustrationCatalog.filter((item) => item.id.startsWith('service-'))
+
+    expect(services).toHaveLength(30)
+    expect(new Set(services.map((item) => item.label)).size).toBe(30)
+    expect(services.every((item) => item.imageUrl)).toBe(true)
+    expect(services.filter((item) => item.category === '交通')).toHaveLength(6)
+    expect(services.filter((item) => item.category === '美食')).toHaveLength(3)
+    expect(services.filter((item) => item.category === '景點')).toHaveLength(5)
+  })
 })
