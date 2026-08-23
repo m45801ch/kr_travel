@@ -12,6 +12,14 @@ export function estimateRoute(from: Coordinates, to: Coordinates): RouteEstimate
   return { distanceKm: Math.round(distanceKm * 10) / 10, walkMinutes: Math.max(1, Math.round(distanceKm / 4.5 * 60)) }
 }
 
+export function formatWalkDuration(totalMinutes: number): string {
+  const minutes = Math.max(0, Math.round(totalMinutes))
+  if (minutes < 60) return `${minutes} 分`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return `${hours} 小時 ${remainingMinutes} 分`
+}
+
 export function formatRouteEstimate(estimate: RouteEstimate, nextName: string): string {
-  return `距${nextName}約 ${estimate.distanceKm} km · 步行約 ${estimate.walkMinutes} 分`
+  return `距${nextName}約 ${estimate.distanceKm} km · 步行約 ${formatWalkDuration(estimate.walkMinutes)}`
 }

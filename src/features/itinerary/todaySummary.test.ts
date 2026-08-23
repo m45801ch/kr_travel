@@ -22,6 +22,13 @@ describe('todaySummary selector', () => {
     expect(summary.remainingBudgetMinor).toBe(7600)
   })
 
+  it('當日活動皆已過時不顯示下一個活動', () => {
+    const summary = selectTodaySummary({ trip, days: [day], activities, expenses: [], referenceDate: '2026-08-25', referenceTime: '16:00' })
+
+    expect(summary.nextActivity).toBeUndefined()
+    expect(summary.activityCount).toBe(2)
+  })
+
   it('沒有當日資料時選擇下一個行程日，且不讓剩餘預算低於零', () => {
     const laterDay = { ...day, id: 'day-2', date: '2026-08-27' }
     const summary = selectTodaySummary({ trip: { ...trip, budgetMinor: 100 }, days: [day, laterDay], activities: [], expenses: [{ ...expenses[0], baseAmountMinor: 2400 }], referenceDate: '2026-08-26' })

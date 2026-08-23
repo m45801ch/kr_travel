@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatRouteEstimate, estimateRoute } from './routeEstimate'
+import { formatRouteEstimate, formatWalkDuration, estimateRoute } from './routeEstimate'
 
 describe('route estimates', () => {
   it('estimates distance and walking time from two coordinates', () => {
@@ -11,5 +11,12 @@ describe('route estimates', () => {
 
   it('formats a compact next-stop label', () => {
     expect(formatRouteEstimate({ distanceKm: 2.8, walkMinutes: 35 }, '晴空塔')).toBe('距晴空塔約 2.8 km · 步行約 35 分')
+  })
+
+  it('formats 60 minutes or more as hours and minutes', () => {
+    expect(formatWalkDuration(59)).toBe('59 分')
+    expect(formatWalkDuration(60)).toBe('1 小時 0 分')
+    expect(formatWalkDuration(100)).toBe('1 小時 40 分')
+    expect(formatRouteEstimate({ distanceKm: 8.2, walkMinutes: 100 }, '東京鐵塔')).toBe('距東京鐵塔約 8.2 km · 步行約 1 小時 40 分')
   })
 })

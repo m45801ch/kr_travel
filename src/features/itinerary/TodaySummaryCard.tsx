@@ -9,6 +9,7 @@ function formatMoney(amountMinor: number, currency: Currency): string {
 
 export function TodaySummaryCard({ summary, currency }: { summary: TodaySummary; currency: Currency }) {
   const weatherLabel = summary.weather ? `${summary.weather.description} ${Math.round(summary.weather.temperatureMax)}° / ${Math.round(summary.weather.temperatureMin)}°` : '尚未取得天氣'
+  const locationLabel = summary.day?.weatherLocation?.trim() || summary.weather?.locationName?.trim() || summary.day?.city || ''
 
   return (
     <section className="today-summary-card" aria-labelledby="today-summary-title">
@@ -16,7 +17,7 @@ export function TodaySummaryCard({ summary, currency }: { summary: TodaySummary;
         <div>
           <p className="eyebrow">TODAY AT A GLANCE</p>
           <h2 id="today-summary-title">{summary.day?.title ?? '今日行程摘要'}</h2>
-          <p>{summary.day ? `${summary.day.date} · ${summary.day.city}` : '還沒有可用的行程日'}</p>
+          <p>{summary.day ? `${summary.day.date} · ${locationLabel}` : '還沒有可用的行程日'}</p>
         </div>
         <CalendarCheck size={24} aria-hidden="true" />
       </div>

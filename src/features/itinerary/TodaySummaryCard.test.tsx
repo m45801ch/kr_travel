@@ -10,6 +10,7 @@ const summary: TodaySummary = {
     tripId: 'trip-1',
     date: '2026-08-25',
     city: '首爾',
+    weatherLocation: '東京',
     title: 'Day 1 抵達',
     summary: '抵達與散步',
     accommodation: '韓屋',
@@ -40,7 +41,7 @@ const summary: TodaySummary = {
     temperatureMin: 18,
     weatherCode: 1,
     description: '晴朗',
-    locationName: '首爾',
+    locationName: 'Tokyo',
   },
 }
 
@@ -50,6 +51,7 @@ describe('TodaySummaryCard', () => {
 
     expect(screen.getByText('TODAY AT A GLANCE')).toBeInTheDocument()
     expect(screen.getByText('Day 1 抵達')).toBeInTheDocument()
+    expect(screen.getByText('2026-08-25 · 東京')).toBeInTheDocument()
     expect(screen.getByText('景福宮')).toBeInTheDocument()
     expect(screen.getByText('10:00 · 景福宮')).toBeInTheDocument()
     expect(screen.getByText('晴朗 27° / 18°')).toBeInTheDocument()
